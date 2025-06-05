@@ -1,4 +1,3 @@
-
 import { Search, Filter, MoreVertical, ArrowLeft, Send, Star, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ interface Conversation {
   lastMessage: string;
   timestamp: string;
   unread: number;
-  status: "ativo" | "pendente" | "resolvido";
+  status: "Aguardando Ativação" | "Em Acompanhamento" | "Humano Solicitado" | "Finalizada";
   isRead: boolean;
   isPriority: boolean;
   messages: Message[];
@@ -35,7 +34,7 @@ const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"todos" | "ativo" | "pendente" | "resolvido">("todos");
+  const [statusFilter, setStatusFilter] = useState<"todos" | "Aguardando Ativação" | "Em Acompanhamento" | "Humano Solicitado" | "Finalizada">("todos");
   const [readFilter, setReadFilter] = useState<"todos" | "lidas" | "nao-lidas">("todos");
   const [priorityFilter, setPriorityFilter] = useState<"todos" | "prioridade" | "normal">("todos");
 
@@ -46,7 +45,7 @@ const Conversations = () => {
       lastMessage: "Estou sentindo um pouco de dor, é normal?",
       timestamp: "10:30",
       unread: 2,
-      status: "ativo",
+      status: "Em Acompanhamento",
       isRead: false,
       isPriority: true,
       messages: [
@@ -61,7 +60,7 @@ const Conversations = () => {
       lastMessage: "Obrigado pelas orientações!",
       timestamp: "09:15",
       unread: 0,
-      status: "resolvido",
+      status: "Finalizada",
       isRead: true,
       isPriority: false,
       messages: [
@@ -78,7 +77,7 @@ const Conversations = () => {
       lastMessage: "Quando devo retornar para consulta?",
       timestamp: "08:45",
       unread: 1,
-      status: "pendente",
+      status: "Humano Solicitado",
       isRead: false,
       isPriority: false,
       messages: [
@@ -177,8 +176,9 @@ const Conversations = () => {
               )}
             </div>
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              selectedConversation.status === 'ativo' ? 'bg-green-100 text-green-800' :
-              selectedConversation.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+              selectedConversation.status === 'Em Acompanhamento' ? 'bg-green-100 text-green-800' :
+              selectedConversation.status === 'Humano Solicitado' ? 'bg-red-100 text-red-800' :
+              selectedConversation.status === 'Aguardando Ativação' ? 'bg-yellow-100 text-yellow-800' :
               'bg-gray-100 text-gray-800'
             }`}>
               {selectedConversation.status}
@@ -251,9 +251,10 @@ const Conversations = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="ativo">Ativo</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="resolvido">Resolvido</SelectItem>
+              <SelectItem value="Aguardando Ativação">Aguardando Ativação</SelectItem>
+              <SelectItem value="Em Acompanhamento">Em Acompanhamento</SelectItem>
+              <SelectItem value="Humano Solicitado">Humano Solicitado</SelectItem>
+              <SelectItem value="Finalizada">Finalizada</SelectItem>
             </SelectContent>
           </Select>
           
@@ -335,8 +336,9 @@ const Conversations = () => {
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center space-x-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        conversation.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                        conversation.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+                        conversation.status === 'Em Acompanhamento' ? 'bg-green-100 text-green-800' :
+                        conversation.status === 'Humano Solicitado' ? 'bg-red-100 text-red-800' :
+                        conversation.status === 'Aguardando Ativação' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {conversation.status}
