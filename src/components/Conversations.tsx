@@ -1,10 +1,11 @@
-
 import { Search, Filter, MoreVertical, ArrowLeft, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 
 interface Message {
@@ -27,6 +28,8 @@ interface Conversation {
 const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"todos" | "ativo" | "pendente" | "resolvido">("todos");
 
   const conversations: Conversation[] = [
     {
@@ -72,12 +75,25 @@ const Conversations = () => {
     },
   ];
 
+  // Filter conversations based on search term and status
+  const filteredConversations = conversations.filter(conversation => {
+    const matchesSearch = conversation.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "todos" || conversation.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;
     
     // Aqui você adicionaria a lógica para enviar a mensagem
     console.log("Enviando mensagem:", newMessage);
     setNewMessage("");
+  };
+
+  const handleConversationAction = (action: string, conversation: Conversation) => {
+    console.log(`Ação: ${action} para ${conversation.patientName}`);
+    // Aqui você implementaria as ações específicas
   };
 
   if (selectedConversation) {
@@ -166,10 +182,18 @@ const Conversations = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Conversas</h1>
-        <Button className="bg-ninacare-primary hover:bg-ninacare-primary/90">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtrar
-        </Button>
+        <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <SelectTrigger className="w-48">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os status</SelectItem>
+            <SelectItem value="ativo">Ativo</SelectItem>
+            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="resolvido">Resolvido</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -180,13 +204,15 @@ const Conversations = () => {
               <Input 
                 placeholder="Buscar conversas..." 
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {conversations.map((conversation) => (
+            {filteredConversations.map((conversation) => (
               <div 
                 key={conversation.id}
                 className="flex items-center space-x-4 p-4 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-200 transition-colors"
@@ -224,12 +250,27 @@ const Conversations = () => {
                   </div>
                 )}
 
-                <Button variant="ghost" size="sm" onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Menu de opções para:", conversation.patientName);
-                }}>
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleConversationAction("marcar-lida", conversation)}>
+                      Marcar como lida
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleConversationAction("arquivar", conversation)}>
+                      Arquivar conversa
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleConversationAction("prioridade", conversation)}>
+                      Marcar como prioridade
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleConversationAction("transferir", conversation)}>
+                      Transferir para outro médico
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ))}
           </div>
