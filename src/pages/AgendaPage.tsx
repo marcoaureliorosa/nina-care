@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import CalendarHeader from "@/components/agenda/CalendarHeader";
 import CalendarGrid from "@/components/agenda/CalendarGrid";
-import PatientDialog from "@/components/agenda/PatientDialog";
 import ConsultationDialog from "@/components/agenda/ConsultationDialog";
 
 const AgendaPage = () => {
@@ -64,18 +62,14 @@ const AgendaPage = () => {
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Agenda</h1>
-        <div className="flex gap-2">
-          <PatientDialog 
-            isOpen={isPacienteDialogOpen}
-            onOpenChange={setIsPacienteDialogOpen}
-            onSubmit={handlePacienteSubmit}
-          />
-          <ConsultationDialog 
-            isOpen={isConsultaDialogOpen}
-            onOpenChange={setIsConsultaDialogOpen}
-            onSubmit={handleConsultaSubmit}
-          />
-        </div>
+        <ConsultationDialog 
+          isOpen={isConsultaDialogOpen}
+          onOpenChange={setIsConsultaDialogOpen}
+          onSubmit={handleConsultaSubmit}
+          isPacienteDialogOpen={isPacienteDialogOpen}
+          onPacienteDialogOpenChange={setIsPacienteDialogOpen}
+          onPacienteSubmit={handlePacienteSubmit}
+        />
       </div>
 
       <CalendarHeader 

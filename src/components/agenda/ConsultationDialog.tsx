@@ -3,15 +3,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
+import PatientDialog from "./PatientDialog";
 
 interface ConsultationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
+  isPacienteDialogOpen: boolean;
+  onPacienteDialogOpenChange: (open: boolean) => void;
+  onPacienteSubmit: (e: React.FormEvent) => void;
 }
 
-const ConsultationDialog = ({ isOpen, onOpenChange, onSubmit }: ConsultationDialogProps) => {
+const ConsultationDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmit,
+  isPacienteDialogOpen,
+  onPacienteDialogOpenChange,
+  onPacienteSubmit
+}: ConsultationDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -27,7 +38,18 @@ const ConsultationDialog = ({ isOpen, onOpenChange, onSubmit }: ConsultationDial
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="patient">Paciente</Label>
-            <Input id="patient" placeholder="Selecionar paciente" required />
+            <div className="flex gap-2">
+              <Input id="patient" placeholder="Selecionar paciente" required className="flex-1" />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="icon"
+                onClick={() => onPacienteDialogOpenChange(true)}
+                title="Cadastrar novo paciente"
+              >
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
@@ -54,6 +76,12 @@ const ConsultationDialog = ({ isOpen, onOpenChange, onSubmit }: ConsultationDial
             </Button>
           </div>
         </form>
+
+        <PatientDialog 
+          isOpen={isPacienteDialogOpen}
+          onOpenChange={onPacienteDialogOpenChange}
+          onSubmit={onPacienteSubmit}
+        />
       </DialogContent>
     </Dialog>
   );
