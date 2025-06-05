@@ -8,6 +8,9 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import Index from "./pages/Index";
 import ConversasPage from "./pages/ConversasPage";
+import PacientesPage from "./pages/PacientesPage";
+import AgendaPage from "./pages/AgendaPage";
+import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/conversas" element={<ConversasPage />} />
+                  <Route path="/pacientes" element={<PacientesPage />} />
+                  <Route path="/agenda" element={<AgendaPage />} />
+                  <Route path="/configuracoes" element={<ConfiguracoesPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

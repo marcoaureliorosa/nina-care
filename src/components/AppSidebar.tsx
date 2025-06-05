@@ -1,5 +1,5 @@
 
-import { BarChart3, MessageSquare, Users, Activity, Settings, Home } from "lucide-react"
+import { MessageSquare, Users, Activity, Settings, Home, Calendar } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -31,9 +31,9 @@ const menuItems = [
     icon: Users,
   },
   {
-    title: "Relatórios",
-    url: "/relatorios",
-    icon: BarChart3,
+    title: "Agenda",
+    url: "/agenda",
+    icon: Calendar,
   },
   {
     title: "Configurações",
