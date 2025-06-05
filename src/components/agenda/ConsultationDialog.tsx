@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, UserPlus } from "lucide-react";
 import PatientDialog from "./PatientDialog";
 
@@ -50,6 +51,20 @@ const ConsultationDialog = ({
                 <UserPlus className="w-4 h-4" />
               </Button>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="doctor">Dr./Dra.</Label>
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar médico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dr-silva">Dr. João Silva</SelectItem>
+                <SelectItem value="dra-santos">Dra. Maria Santos</SelectItem>
+                <SelectItem value="dr-costa">Dr. Pedro Costa</SelectItem>
+                <SelectItem value="dra-oliveira">Dra. Ana Oliveira</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
