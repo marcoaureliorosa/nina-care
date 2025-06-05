@@ -3,7 +3,6 @@ import { Activity, Users, UserCheck, MessageCircle } from "lucide-react"
 import MetricCard from "./dashboard/MetricCard"
 import EngagementMetrics from "./dashboard/EngagementMetrics"
 import RecentActivity from "./dashboard/RecentActivity"
-import NinaConversations from "./dashboard/NinaConversations"
 
 const Dashboard = () => {
   // Mock data - in a real application, this would come from your API
@@ -72,9 +71,6 @@ const Dashboard = () => {
 
       {/* Recent Activity */}
       <RecentActivity />
-
-      {/* Nina Conversations Summary */}
-      <NinaConversations />
     </div>
   )
 }
