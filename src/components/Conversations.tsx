@@ -1,392 +1,236 @@
-import { Search, Filter, MoreVertical, ArrowLeft, Send, Star, Mail } from "lucide-react";
+
+import { useState } from "react";
+import { Search, Filter, MessageCircle, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-
-interface Message {
-  id: number;
-  text: string;
-  timestamp: string;
-  sender: "patient" | "doctor";
-}
-
-interface Conversation {
-  id: number;
-  patientName: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-  status: "Aguardando Ativação" | "Em Acompanhamento" | "Humano Solicitado" | "Finalizada";
-  isRead: boolean;
-  isPriority: boolean;
-  messages: Message[];
-}
 
 const Conversations = () => {
-  const { toast } = useToast();
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"todos" | "Aguardando Ativação" | "Em Acompanhamento" | "Humano Solicitado" | "Finalizada">("todos");
-  const [readFilter, setReadFilter] = useState<"todos" | "lidas" | "nao-lidas">("todos");
-  const [priorityFilter, setPriorityFilter] = useState<"todos" | "prioridade" | "normal">("todos");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: 1,
-      patientName: "Maria Silva",
-      lastMessage: "Estou sentindo um pouco de dor, é normal?",
-      timestamp: "10:30",
-      unread: 2,
-      status: "Em Acompanhamento",
-      isRead: false,
-      isPriority: true,
-      messages: [
-        { id: 1, text: "Olá Doutora, como está?", timestamp: "10:25", sender: "patient" },
-        { id: 2, text: "Olá Maria! Estou bem, obrigada. Como posso ajudar?", timestamp: "10:26", sender: "doctor" },
-        { id: 3, text: "Estou sentindo um pouco de dor, é normal?", timestamp: "10:30", sender: "patient" },
-      ]
-    },
-    {
-      id: 2,
-      patientName: "João Santos",
-      lastMessage: "Obrigado pelas orientações!",
-      timestamp: "09:15",
-      unread: 0,
-      status: "Finalizada",
-      isRead: true,
-      isPriority: false,
-      messages: [
-        { id: 1, text: "Doutor, gostaria de tirar uma dúvida", timestamp: "09:10", sender: "patient" },
-        { id: 2, text: "Claro João, pode falar!", timestamp: "09:11", sender: "doctor" },
-        { id: 3, text: "Posso fazer exercícios já?", timestamp: "09:12", sender: "patient" },
-        { id: 4, text: "Sim, exercícios leves são recomendados. Evite impacto por enquanto.", timestamp: "09:13", sender: "doctor" },
-        { id: 5, text: "Obrigado pelas orientações!", timestamp: "09:15", sender: "patient" },
-      ]
-    },
-    {
-      id: 3,
-      patientName: "Ana Costa",
-      lastMessage: "Quando devo retornar para consulta?",
-      timestamp: "08:45",
-      unread: 1,
-      status: "Humano Solicitado",
-      isRead: false,
-      isPriority: false,
-      messages: [
-        { id: 1, text: "Bom dia Doutora!", timestamp: "08:40", sender: "patient" },
-        { id: 2, text: "Bom dia Ana! Como está se sentindo?", timestamp: "08:42", sender: "doctor" },
-        { id: 3, text: "Muito melhor! Quando devo retornar para consulta?", timestamp: "08:45", sender: "patient" },
-      ]
-    },
-  ]);
+  // Buscar conversas do Supabase
+  const { data: conversations, isLoading } = useQuery({
+    queryKey: ['conversations', searchTerm, statusFilter],
+    queryFn: async () => {
+      console.log('Fetching conversations...')
+      
+      let query = supabase
+        .from('conversas')
+        .select(`
+          *,
+          pacientes (
+            nome,
+            telefone
+          )
+        `)
+        .order('updated_at', { ascending: false })
 
-  // Filter conversations based on search term, status, read status, and priority
-  const filteredConversations = conversations.filter(conversation => {
-    const matchesSearch = conversation.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "todos" || conversation.status === statusFilter;
-    const matchesRead = readFilter === "todos" || 
-                       (readFilter === "lidas" && conversation.isRead) ||
-                       (readFilter === "nao-lidas" && !conversation.isRead);
-    const matchesPriority = priorityFilter === "todos" || 
-                           (priorityFilter === "prioridade" && conversation.isPriority) ||
-                           (priorityFilter === "normal" && !conversation.isPriority);
-    return matchesSearch && matchesStatus && matchesRead && matchesPriority;
+      if (searchTerm) {
+        // Buscar por nome do paciente através do JOIN
+        query = query.or(`pacientes.nome.ilike.%${searchTerm}%`)
+      }
+
+      if (statusFilter !== "all") {
+        query = query.eq('status', statusFilter)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching conversations:', error)
+        return []
+      }
+
+      console.log('Conversations data:', data)
+      return data
+    }
   });
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation) return;
-    
-    const newMsg: Message = {
-      id: selectedConversation.messages.length + 1,
-      text: newMessage,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      sender: "doctor"
-    };
-
-    setConversations(prev => prev.map(conv => 
-      conv.id === selectedConversation.id 
-        ? { ...conv, messages: [...conv.messages, newMsg], lastMessage: newMessage }
-        : conv
-    ));
-
-    setSelectedConversation(prev => prev ? { ...prev, messages: [...prev.messages, newMsg] } : null);
-    setNewMessage("");
-    
-    toast({
-      title: "Mensagem enviada",
-      description: "Sua mensagem foi enviada com sucesso.",
-    });
-  };
-
-  const handleConversationAction = (action: string, conversation: Conversation) => {
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === conversation.id) {
-        if (action === "marcar-lida") {
-          toast({
-            title: "Conversa marcada como lida",
-            description: `A conversa com ${conversation.patientName} foi marcada como lida.`,
-          });
-          return { ...conv, isRead: !conv.isRead, unread: conv.isRead ? conv.unread : 0 };
-        } else if (action === "marcar-prioridade") {
-          toast({
-            title: conv.isPriority ? "Prioridade removida" : "Marcada como prioridade",
-            description: `A conversa com ${conversation.patientName} ${conv.isPriority ? 'não é mais' : 'agora é'} prioridade.`,
-          });
-          return { ...conv, isPriority: !conv.isPriority };
-        }
-      }
-      return conv;
-    }));
-  };
-
-  if (selectedConversation) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => setSelectedConversation(null)}
-            className="p-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <Avatar>
-            <AvatarImage src={`https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=400&fit=crop&crop=face`} />
-            <AvatarFallback>
-              {selectedConversation.patientName.split(' ').map(n => n[0]).join('')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold text-gray-900">{selectedConversation.patientName}</h1>
-              {selectedConversation.isPriority && (
-                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-              )}
-              {!selectedConversation.isRead && selectedConversation.unread > 0 && (
-                <Mail className="w-5 h-5 text-blue-500" />
-              )}
-            </div>
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              selectedConversation.status === 'Em Acompanhamento' ? 'bg-green-100 text-green-800' :
-              selectedConversation.status === 'Humano Solicitado' ? 'bg-red-100 text-red-800' :
-              selectedConversation.status === 'Aguardando Ativação' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {selectedConversation.status}
-            </span>
-          </div>
-        </div>
-
-        <Card className="h-[600px] flex flex-col">
-          <CardContent className="flex-1 p-4 overflow-y-auto">
-            <div className="space-y-4">
-              {selectedConversation.messages.map((message) => (
-                <div 
-                  key={message.id}
-                  className={`flex ${message.sender === 'doctor' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[70%] p-3 rounded-lg ${
-                    message.sender === 'doctor' 
-                      ? 'bg-ninacare-primary text-white' 
-                      : 'bg-gray-100 text-gray-900'
-                  }`}>
-                    <p className="text-sm">{message.text}</p>
-                    <span className={`text-xs mt-1 block ${
-                      message.sender === 'doctor' ? 'text-white/80' : 'text-gray-500'
-                    }`}>
-                      {message.timestamp}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-          
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
-              <Textarea
-                placeholder="Digite sua mensagem..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="flex-1 min-h-[60px] resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              />
-              <Button 
-                onClick={handleSendMessage}
-                className="bg-ninacare-primary hover:bg-ninacare-primary/90"
-                disabled={!newMessage.trim()}
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'em_acompanhamento':
+        return <MessageCircle className="w-4 h-4" />
+      case 'humano_solicitado':
+        return <AlertCircle className="w-4 h-4" />
+      case 'finalizada':
+        return <CheckCircle className="w-4 h-4" />
+      case 'aguardando_ativacao':
+        return <Clock className="w-4 h-4" />
+      default:
+        return <MessageCircle className="w-4 h-4" />
+    }
   }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'em_acompanhamento':
+        return 'bg-blue-100 text-blue-800'
+      case 'humano_solicitado':
+        return 'bg-red-100 text-red-800'
+      case 'finalizada':
+        return 'bg-green-100 text-green-800'
+      case 'aguardando_ativacao':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'em_acompanhamento':
+        return 'Em Acompanhamento'
+      case 'humano_solicitado':
+        return 'Humano Solicitado'
+      case 'finalizada':
+        return 'Finalizada'
+      case 'aguardando_ativacao':
+        return 'Aguardando Ativação'
+      default:
+        return status
+    }
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const statusOptions = [
+    { value: "all", label: "Todos" },
+    { value: "aguardando_ativacao", label: "Aguardando Ativação" },
+    { value: "em_acompanhamento", label: "Em Acompanhamento" },
+    { value: "humano_solicitado", label: "Humano Solicitado" },
+    { value: "finalizada", label: "Finalizada" }
+  ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Conversas</h1>
-        <div className="flex space-x-2">
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-            <SelectTrigger className="w-48">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="Aguardando Ativação">Aguardando Ativação</SelectItem>
-              <SelectItem value="Em Acompanhamento">Em Acompanhamento</SelectItem>
-              <SelectItem value="Humano Solicitado">Humano Solicitado</SelectItem>
-              <SelectItem value="Finalizada">Finalizada</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={readFilter} onValueChange={(value: any) => setReadFilter(value)}>
-            <SelectTrigger className="w-40">
-              <Mail className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas</SelectItem>
-              <SelectItem value="lidas">Lidas</SelectItem>
-              <SelectItem value="nao-lidas">Não lidas</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
-            <SelectTrigger className="w-40">
-              <Star className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas</SelectItem>
-              <SelectItem value="prioridade">Prioridade</SelectItem>
-              <SelectItem value="normal">Normal</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Conversas Nina</h1>
       </div>
 
+      {/* Filtros */}
       <Card>
         <CardHeader>
-          <div className="flex items-center space-x-4">
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input 
-                placeholder="Buscar conversas..." 
+                placeholder="Buscar por nome do paciente..." 
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <div className="flex gap-2">
+              {statusOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={statusFilter === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter(option.value)}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de Conversas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Conversas Ativas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredConversations.map((conversation) => (
-              <div 
-                key={conversation.id}
-                className={`flex items-center space-x-4 p-4 hover:bg-gray-50 rounded-lg cursor-pointer border transition-colors ${
-                  conversation.isPriority ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200'
-                } ${!conversation.isRead ? 'bg-blue-50' : ''}`}
-                onClick={() => setSelectedConversation(conversation)}
-              >
-                <Avatar>
-                  <AvatarImage src={`https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=400&fit=crop&crop=face`} />
-                  <AvatarFallback>
-                    {conversation.patientName.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <h3 className={`font-semibold truncate ${!conversation.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
-                        {conversation.patientName}
-                      </h3>
-                      {conversation.isPriority && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      )}
-                      {!conversation.isRead && conversation.unread > 0 && (
-                        <Mail className="w-4 h-4 text-blue-500" />
-                      )}
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Carregando conversas...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {conversations && conversations.length > 0 ? (
+                conversations.map((conversation) => (
+                  <div 
+                    key={conversation.id} 
+                    className={`p-4 rounded-lg border hover:bg-gray-50 transition-colors cursor-pointer ${
+                      !conversation.is_read ? 'bg-blue-50 border-blue-200' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(conversation.status)}
+                            <h3 className="font-semibold text-gray-900">
+                              {conversation.pacientes?.nome || 'Paciente não identificado'}
+                            </h3>
+                          </div>
+                          <Badge className={getStatusColor(conversation.status)}>
+                            {getStatusLabel(conversation.status)}
+                          </Badge>
+                          {conversation.is_priority && (
+                            <Badge variant="destructive">Prioritária</Badge>
+                          )}
+                          {!conversation.is_read && conversation.unread_count > 0 && (
+                            <Badge variant="secondary">
+                              {conversation.unread_count} nova{conversation.unread_count > 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>Telefone:</strong> {conversation.pacientes?.telefone || 'N/A'}
+                        </div>
+
+                        {conversation.ultima_mensagem && (
+                          <div className="text-sm text-gray-700 mb-2">
+                            <strong>Última mensagem:</strong> {conversation.ultima_mensagem}
+                          </div>
+                        )}
+
+                        {conversation.resumo_conversa && (
+                          <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700">
+                            <strong>Resumo:</strong> {conversation.resumo_conversa}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="text-right text-sm text-gray-500">
+                        <div>Agente: {conversation.agente}</div>
+                        <div>{formatTime(conversation.timestamp_ultima_mensagem || conversation.updated_at)}</div>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">{conversation.timestamp}</span>
                   </div>
-                  <p className={`text-sm truncate ${!conversation.isRead ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>
-                    {conversation.lastMessage}
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-500">
+                    {searchTerm || statusFilter !== "all" 
+                      ? 'Nenhuma conversa encontrada com os filtros aplicados' 
+                      : 'Nenhuma conversa encontrada'
+                    }
                   </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        conversation.status === 'Em Acompanhamento' ? 'bg-green-100 text-green-800' :
-                        conversation.status === 'Humano Solicitado' ? 'bg-red-100 text-red-800' :
-                        conversation.status === 'Aguardando Ativação' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {conversation.status}
-                      </span>
-                      {conversation.isPriority && (
-                        <Badge variant="outline" className="text-yellow-700 border-yellow-300">
-                          Prioridade
-                        </Badge>
-                      )}
-                      {!conversation.isRead && (
-                        <Badge variant="outline" className="text-blue-700 border-blue-300">
-                          Não lida
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
                 </div>
-
-                {conversation.unread > 0 && (
-                  <div className="bg-ninacare-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
-                    {conversation.unread}
-                  </div>
-                )}
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={(e) => {
-                      e.stopPropagation();
-                      handleConversationAction("marcar-lida", conversation);
-                    }}>
-                      {conversation.isRead ? "Marcar como não lida" : "Marcar como lida"}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => {
-                      e.stopPropagation();
-                      handleConversationAction("marcar-prioridade", conversation);
-                    }}>
-                      {conversation.isPriority ? "Remover prioridade" : "Marcar como prioridade"}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

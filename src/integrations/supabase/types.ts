@@ -16,6 +16,7 @@ export type Database = {
           email: string | null
           id: number
           interesse_duvida: string | null
+          paciente_id: string | null
           role: string | null
           status: string | null
           user_name: string | null
@@ -28,6 +29,7 @@ export type Database = {
           email?: string | null
           id?: number
           interesse_duvida?: string | null
+          paciente_id?: string | null
           role?: string | null
           status?: string | null
           user_name?: string | null
@@ -40,13 +42,85 @@ export type Database = {
           email?: string | null
           id?: number
           interesse_duvida?: string | null
+          paciente_id?: string | null
           role?: string | null
           status?: string | null
           user_name?: string | null
           user_number?: string | null
           user_profile?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contatos_agente_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversas: {
+        Row: {
+          agente: string
+          created_at: string
+          id: string
+          is_priority: boolean | null
+          is_read: boolean | null
+          paciente_id: string
+          procedimento_id: string | null
+          resumo_conversa: string | null
+          status: string
+          timestamp_ultima_mensagem: string | null
+          ultima_mensagem: string | null
+          unread_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          agente?: string
+          created_at?: string
+          id?: string
+          is_priority?: boolean | null
+          is_read?: boolean | null
+          paciente_id: string
+          procedimento_id?: string | null
+          resumo_conversa?: string | null
+          status?: string
+          timestamp_ultima_mensagem?: string | null
+          ultima_mensagem?: string | null
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agente?: string
+          created_at?: string
+          id?: string
+          is_priority?: boolean | null
+          is_read?: boolean | null
+          paciente_id?: string
+          procedimento_id?: string | null
+          resumo_conversa?: string | null
+          status?: string
+          timestamp_ultima_mensagem?: string | null
+          ultima_mensagem?: string | null
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversas_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversas_procedimento_id_fkey"
+            columns: ["procedimento_id"]
+            isOneToOne: false
+            referencedRelation: "procedimentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -89,6 +163,158 @@ export type Database = {
           user_number?: string | null
         }
         Relationships: []
+      }
+      medicos: {
+        Row: {
+          created_at: string
+          crm: string
+          email: string
+          especialidade: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          crm: string
+          email: string
+          especialidade?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          crm?: string
+          email?: string
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mensagens: {
+        Row: {
+          conversa_id: string
+          created_at: string
+          id: string
+          sender: string
+          texto: string
+          timestamp: string
+        }
+        Insert: {
+          conversa_id: string
+          created_at?: string
+          id?: string
+          sender: string
+          texto: string
+          timestamp?: string
+        }
+        Update: {
+          conversa_id?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          texto?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pacientes: {
+        Row: {
+          cpf: string
+          created_at: string
+          data_nascimento: string | null
+          email: string
+          id: string
+          nome: string
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          cpf: string
+          created_at?: string
+          data_nascimento?: string | null
+          email: string
+          id?: string
+          nome: string
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string
+          created_at?: string
+          data_nascimento?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      procedimentos: {
+        Row: {
+          created_at: string
+          data_procedimento: string
+          id: string
+          medico_id: string | null
+          observacoes: string | null
+          paciente_id: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_procedimento: string
+          id?: string
+          medico_id?: string | null
+          observacoes?: string | null
+          paciente_id: string
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_procedimento?: string
+          id?: string
+          medico_id?: string | null
+          observacoes?: string | null
+          paciente_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedimentos_medico_id_fkey"
+            columns: ["medico_id"]
+            isOneToOne: false
+            referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedimentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

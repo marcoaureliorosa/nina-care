@@ -1,41 +1,103 @@
 
 import { useState } from "react";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const PacientesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: "Maria Silva",
-      cpf: "123.456.789-00",
-      email: "maria@email.com",
-      phone: "(11) 99999-9999",
-      birthDate: "15/03/1985",
-      procedures: 2
-    },
-    {
-      id: 2,
-      name: "João Santos",
-      cpf: "987.654.321-00",
-      email: "joao@email.com",
-      phone: "(11) 88888-8888",
-      birthDate: "22/07/1978",
-      procedures: 1
+  const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
+
+  // Buscar pacientes do Supabase
+  const { data: patients, isLoading } = useQuery({
+    queryKey: ['patients', searchTerm],
+    queryFn: async () => {
+      console.log('Fetching patients...')
+      
+      let query = supabase
+        .from('pacientes')
+        .select(`
+          *,
+          procedimentos (id)
+        `)
+        .order('created_at', { ascending: false })
+
+      if (searchTerm) {
+        query = query.or(`nome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching patients:', error)
+        toast.error('Erro ao carregar pacientes')
+        return []
+      }
+
+      console.log('Patients data:', data)
+      return data
     }
-  ]);
+  });
+
+  // Mutation para criar paciente
+  const createPatientMutation = useMutation({
+    mutationFn: async (patientData: {
+      nome: string;
+      cpf: string;
+      email: string;
+      telefone: string;
+      data_nascimento?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('pacientes')
+        .insert([patientData])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating patient:', error)
+        throw error
+      }
+
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] })
+      setIsDialogOpen(false)
+      toast.success('Paciente cadastrado com sucesso!')
+    },
+    onError: (error: any) => {
+      console.error('Error creating patient:', error)
+      toast.error('Erro ao cadastrar paciente')
+    }
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui seria implementada a lógica de cadastro
-    setIsDialogOpen(false);
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    const patientData = {
+      nome: formData.get('name') as string,
+      cpf: formData.get('cpf') as string,
+      email: formData.get('email') as string,
+      telefone: formData.get('phone') as string,
+      data_nascimento: formData.get('birthDate') as string || undefined,
+    };
+
+    createPatientMutation.mutate(patientData);
   };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR')
+  }
 
   return (
     <div className="space-y-6">
@@ -55,27 +117,31 @@ const PacientesPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome Completo</Label>
-                <Input id="name" placeholder="Digite o nome completo" required />
+                <Input id="name" name="name" placeholder="Digite o nome completo" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cpf">CPF</Label>
-                <Input id="cpf" placeholder="000.000.000-00" required />
+                <Input id="cpf" name="cpf" placeholder="000.000.000-00" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" placeholder="email@exemplo.com" required />
+                <Input id="email" name="email" type="email" placeholder="email@exemplo.com" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" placeholder="(00) 00000-0000" required />
+                <Input id="phone" name="phone" placeholder="(00) 00000-0000" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="birthDate">Data de Nascimento</Label>
-                <Input id="birthDate" type="date" required />
+                <Input id="birthDate" name="birthDate" type="date" />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90">
-                  Cadastrar
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
+                  disabled={createPatientMutation.isPending}
+                >
+                  {createPatientMutation.isPending ? 'Cadastrando...' : 'Cadastrar'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -94,44 +160,66 @@ const PacientesPage = () => {
               <Input 
                 placeholder="Buscar pacientes..." 
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>CPF</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Procedimentos</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {patients.map((patient) => (
-                <TableRow key={patient.id}>
-                  <TableCell className="font-medium">{patient.name}</TableCell>
-                  <TableCell>{patient.cpf}</TableCell>
-                  <TableCell>{patient.email}</TableCell>
-                  <TableCell>{patient.phone}</TableCell>
-                  <TableCell>{patient.procedures}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Carregando pacientes...</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>CPF</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Data Nascimento</TableHead>
+                  <TableHead>Procedimentos</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {patients && patients.length > 0 ? (
+                  patients.map((patient) => (
+                    <TableRow key={patient.id}>
+                      <TableCell className="font-medium">{patient.nome}</TableCell>
+                      <TableCell>{patient.cpf}</TableCell>
+                      <TableCell>{patient.email}</TableCell>
+                      <TableCell>{patient.telefone}</TableCell>
+                      <TableCell>
+                        {patient.data_nascimento ? formatDate(patient.data_nascimento) : '-'}
+                      </TableCell>
+                      <TableCell>{patient.procedimentos?.length || 0}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <p className="text-gray-500">
+                        {searchTerm ? 'Nenhum paciente encontrado' : 'Nenhum paciente cadastrado'}
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
