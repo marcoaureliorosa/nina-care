@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,15 +17,22 @@ const LoginPage = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  // Verificar se é uma sessão de recuperação de senha
+  const isPasswordRecovery = searchParams.get('type') === 'recovery';
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !isPasswordRecovery) {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isPasswordRecovery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,14 +62,14 @@ const LoginPage = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: `${window.location.origin}/login?type=recovery`,
       });
 
       if (error) throw error;
 
       toast({
         title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+        description: "Verifique sua caixa de entrada (e spam) para instruções de redefinição de senha.",
       });
 
       setShowForgotPassword(false);
@@ -72,11 +78,63 @@ const LoginPage = () => {
       console.error('Reset password error:', error);
       toast({
         title: "Erro ao enviar email",
-        description: error.message || "Não foi possível enviar o email de recuperação.",
+        description: error.message || "Não foi possível enviar o email de recuperação. Verifique se o email está cadastrado no sistema.",
         variant: "destructive",
       });
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erro na confirmação",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Senha atualizada!",
+        description: "Sua senha foi alterada com sucesso. Você será redirecionado para a tela inicial.",
+      });
+
+      // Aguardar um pouco e redirecionar
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast({
+        title: "Erro ao atualizar senha",
+        description: error.message || "Não foi possível atualizar a senha.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -86,6 +144,82 @@ const LoginPage = () => {
         <div className="text-center">
           <Activity className="w-8 h-8 text-ninacare-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se for recuperação de senha, mostrar formulário de nova senha
+  if (isPasswordRecovery) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-ninacare-primary rounded-lg flex items-center justify-center">
+                <Activity className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Ninacare</h1>
+                <p className="text-sm text-gray-600">Central de Monitoramento</p>
+              </div>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Nova Senha</CardTitle>
+              <CardDescription>
+                Digite sua nova senha abaixo
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleUpdatePassword} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nova Senha</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    placeholder="Digite sua nova senha"
+                    className="w-full"
+                    minLength={6}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="Confirme sua nova senha"
+                    className="w-full"
+                    minLength={6}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isUpdatingPassword || !newPassword || !confirmPassword}
+                  className="w-full bg-ninacare-primary hover:bg-ninacare-primary/90"
+                >
+                  {isUpdatingPassword ? (
+                    <>
+                      <Activity className="mr-2 h-4 w-4 animate-spin" />
+                      Atualizando...
+                    </>
+                  ) : (
+                    'Atualizar Senha'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
