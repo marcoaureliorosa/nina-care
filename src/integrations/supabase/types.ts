@@ -172,6 +172,7 @@ export type Database = {
           especialidade: string | null
           id: string
           nome: string
+          organizacao_id: string | null
           telefone: string | null
           updated_at: string
         }
@@ -182,6 +183,7 @@ export type Database = {
           especialidade?: string | null
           id?: string
           nome: string
+          organizacao_id?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -192,10 +194,19 @@ export type Database = {
           especialidade?: string | null
           id?: string
           nome?: string
+          organizacao_id?: string | null
           telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medicos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mensagens: {
         Row: {
@@ -273,6 +284,7 @@ export type Database = {
           email: string
           id: string
           nome: string
+          organizacao_id: string | null
           telefone: string
           updated_at: string
         }
@@ -283,6 +295,7 @@ export type Database = {
           email: string
           id?: string
           nome: string
+          organizacao_id?: string | null
           telefone: string
           updated_at?: string
         }
@@ -293,10 +306,19 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          organizacao_id?: string | null
           telefone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pacientes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       procedimentos: {
         Row: {
@@ -460,6 +482,14 @@ export type Database = {
         Returns: string
       }
       generate_unique_invite_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_org: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

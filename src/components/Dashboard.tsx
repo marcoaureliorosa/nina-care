@@ -2,39 +2,69 @@
 import { Activity, Users, UserCheck, MessageCircle } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
 import MetricCard from "./dashboard/MetricCard"
 import EngagementMetrics from "./dashboard/EngagementMetrics"
 import RecentActivity from "./dashboard/RecentActivity"
 
 const Dashboard = () => {
-  // Buscar dados das métricas do Supabase
+  const { profile } = useAuth();
+
+  // Buscar dados das métricas do Supabase filtrados por organização
   const { data: metrics, isLoading } = useQuery({
-    queryKey: ['dashboard-metrics'],
+    queryKey: ['dashboard-metrics', profile?.organizacao_id],
     queryFn: async () => {
-      console.log('Fetching dashboard metrics...')
+      if (!profile?.organizacao_id) {
+        console.log('No organization ID available')
+        return {
+          procedures: 0,
+          totalPatients: 0,
+          activePatients: { count: 0, percentage: 0 },
+          ninaActivation: { count: 0, percentage: 0 },
+          responseRate24h: { count: 0, percentage: 0 },
+          spontaneousContacts: { count: 0, percentage: 0 },
+          humanActivations: { count: 0, percentage: 0 },
+          satisfactionClicks: 0
+        };
+      }
+
+      console.log('Fetching dashboard metrics for organization:', profile.organizacao_id)
       
-      // Buscar total de procedimentos
+      // Buscar total de procedimentos da organização
       const { data: procedimentos, error: procedimentosError } = await supabase
         .from('procedimentos')
-        .select('id')
+        .select(`
+          id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
       
       if (procedimentosError) {
         console.error('Error fetching procedimentos:', procedimentosError)
       }
 
-      // Buscar total de pacientes
+      // Buscar total de pacientes da organização
       const { data: pacientes, error: pacientesError } = await supabase
         .from('pacientes')
         .select('id')
+        .eq('organizacao_id', profile.organizacao_id)
       
       if (pacientesError) {
         console.error('Error fetching pacientes:', pacientesError)
       }
 
-      // Buscar conversas ativas (pacientes que têm conversas)
+      // Buscar conversas ativas (pacientes da organização que têm conversas)
       const { data: conversasAtivas, error: conversasError } = await supabase
         .from('conversas')
-        .select('paciente_id')
+        .select(`
+          paciente_id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
       
       if (conversasError) {
         console.error('Error fetching conversas:', conversasError)
@@ -43,7 +73,13 @@ const Dashboard = () => {
       // Buscar ativações da Nina
       const { data: ninaActivations, error: ninaError } = await supabase
         .from('conversas')
-        .select('id')
+        .select(`
+          id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
         .neq('status', 'aguardando_ativacao')
       
       if (ninaError) {
@@ -56,7 +92,13 @@ const Dashboard = () => {
       
       const { data: responseRate24h, error: responseError } = await supabase
         .from('conversas')
-        .select('id')
+        .select(`
+          id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
         .gte('timestamp_ultima_mensagem', oneDayAgo.toISOString())
       
       if (responseError) {
@@ -66,7 +108,13 @@ const Dashboard = () => {
       // Buscar contatos espontâneos
       const { data: spontaneousContacts, error: spontaneousError } = await supabase
         .from('conversas')
-        .select('id')
+        .select(`
+          id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
         .eq('is_priority', true)
       
       if (spontaneousError) {
@@ -76,7 +124,13 @@ const Dashboard = () => {
       // Buscar ativações humanas
       const { data: humanActivations, error: humanError } = await supabase
         .from('conversas')
-        .select('id')
+        .select(`
+          id,
+          pacientes!inner (
+            organizacao_id
+          )
+        `)
+        .eq('pacientes.organizacao_id', profile.organizacao_id)
         .eq('status', 'humano_solicitado')
       
       if (humanError) {
@@ -123,7 +177,8 @@ const Dashboard = () => {
         },
         satisfactionClicks: Math.floor(totalConversasAtivas * 0.8) // Aproximação baseada nas conversas
       }
-    }
+    },
+    enabled: !!profile?.organizacao_id
   })
 
   if (isLoading) {
@@ -132,6 +187,17 @@ const Dashboard = () => {
         <div className="border-b border-gray-200 pb-6">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard Ninacare</h1>
           <p className="text-gray-600 mt-2">Carregando métricas...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile?.organizacao_id) {
+    return (
+      <div className="space-y-6">
+        <div className="border-b border-gray-200 pb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard Ninacare</h1>
+          <p className="text-gray-600 mt-2">Usuário não está associado a uma organização.</p>
         </div>
       </div>
     )
@@ -155,6 +221,9 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Ninacare</h1>
         <p className="text-gray-600 mt-2">
           Acompanhamento em tempo real dos agentes IA e métricas de engajamento
+        </p>
+        <p className="text-sm text-gray-500">
+          Organização: {profile.organizacoes?.nome || 'Sem organização'}
         </p>
       </div>
 

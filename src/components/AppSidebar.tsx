@@ -1,101 +1,95 @@
 
-import { MessageSquare, Users, Activity, Settings, Home, Calendar, User, Shield } from "lucide-react"
+import {
+  Calendar,
+  Home,
+  MessageCircle,
+  Settings,
+  Users,
+  Activity,
+  Shield,
+} from "lucide-react"
+
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
 } from "@/components/ui/sidebar"
-import { useLocation } from "react-router-dom"
-import { useAuth } from "@/contexts/AuthContext"
+import { usePermissions } from "@/hooks/usePermissions"
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Conversas",
-    url: "/conversas",
-    icon: MessageSquare,
-  },
-  {
-    title: "Pacientes",
-    url: "/pacientes",
-    icon: Users,
-  },
-  {
-    title: "Agenda",
-    url: "/agenda",
-    icon: Calendar,
-  },
-  {
-    title: "Meu Perfil",
-    url: "/perfil",
-    icon: User,
-  },
-  {
-    title: "Configurações",
-    url: "/configuracoes",
-    icon: Settings,
-  },
-]
+// Menu items baseado em permissões
+const useMenuItems = () => {
+  const { isAdmin, canViewReports } = usePermissions();
 
-const adminMenuItems = [
-  {
-    title: "Painel Admin",
-    url: "/admin",
-    icon: Shield,
-  },
-]
+  const items = [
+    {
+      title: "Dashboard",
+      url: "/",
+      icon: Home,
+      show: true,
+    },
+    {
+      title: "Conversas",
+      url: "/conversas",
+      icon: MessageCircle,
+      show: true,
+    },
+    {
+      title: "Pacientes",
+      url: "/pacientes",
+      icon: Users,
+      show: true,
+    },
+    {
+      title: "Agenda",
+      url: "/agenda",
+      icon: Calendar,
+      show: true,
+    },
+    {
+      title: "Configurações",
+      url: "/configuracoes",
+      icon: Settings,
+      show: true,
+    },
+  ];
+
+  const adminItems = [
+    {
+      title: "Administração",
+      url: "/admin",
+      icon: Shield,
+      show: isAdmin(),
+    },
+  ];
+
+  return {
+    main: items.filter(item => item.show),
+    admin: adminItems.filter(item => item.show),
+  };
+};
 
 export function AppSidebar() {
-  const location = useLocation()
-  const { profile } = useAuth()
-
-  const allMenuItems = [
-    ...menuItems,
-    ...(profile?.role === 'admin' ? adminMenuItems : [])
-  ]
+  const menuItems = useMenuItems();
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <Activity className="w-5 h-5 text-ninacare-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-sidebar-foreground">Ninacare</h2>
-            <p className="text-xs text-sidebar-foreground/70">Central de Monitoramento</p>
-          </div>
-        </div>
-      </SidebarHeader>
-      
+    <Sidebar>
       <SidebarContent>
+        {/* Menu Principal */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs uppercase tracking-wider px-6 py-2">
-            Navegação Principal
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {allMenuItems.map((item) => (
+              {menuItems.main.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={location.pathname === item.url}
-                    className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
-                  >
-                    <a href={item.url} className="flex items-center gap-3 px-6 py-3">
-                      <item.icon className="w-4 h-4" />
-                      <span className="font-medium">{item.title}</span>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -103,13 +97,28 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Menu Administrativo - apenas para admins */}
+        {menuItems.admin.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.admin.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <a href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
-      
-      <SidebarFooter className="border-t border-sidebar-border p-6">
-        <div className="text-xs text-sidebar-foreground/50">
-          © 2024 Ninacare Platform
-        </div>
-      </SidebarFooter>
     </Sidebar>
   )
 }
