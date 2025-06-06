@@ -1,5 +1,5 @@
 
-import { MessageSquare, Users, Activity, Settings, Home, Calendar } from "lucide-react"
+import { MessageSquare, Users, Activity, Settings, Home, Calendar, User } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -34,6 +34,11 @@ const menuItems = [
     title: "Agenda",
     url: "/agenda",
     icon: Calendar,
+  },
+  {
+    title: "Meu Perfil",
+    url: "/perfil",
+    icon: User,
   },
   {
     title: "Configurações",

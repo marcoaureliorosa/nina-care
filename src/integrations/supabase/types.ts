@@ -232,6 +232,39 @@ export type Database = {
           },
         ]
       }
+      organizacoes: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pacientes: {
         Row: {
           cpf: string
@@ -312,6 +345,53 @@ export type Database = {
             columns: ["paciente_id"]
             isOneToOne: false
             referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          nome: string
+          organizacao_id: string
+          role: Database["public"]["Enums"]["user_role"]
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          is_active?: boolean
+          nome: string
+          organizacao_id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          nome?: string
+          organizacao_id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
             referencedColumns: ["id"]
           },
         ]
@@ -451,7 +531,7 @@ export type Database = {
         | "preop"
         | "monitoring"
         | "finished"
-      user_role: "admin" | "doctor" | "nurse" | "secretary"
+      user_role: "admin" | "doctor" | "nurse" | "secretary" | "recepcionista"
       user_role_enum: "admin" | "doctor" | "nurse" | "secretary"
     }
     CompositeTypes: {
@@ -575,7 +655,7 @@ export const Constants = {
         "monitoring",
         "finished",
       ],
-      user_role: ["admin", "doctor", "nurse", "secretary"],
+      user_role: ["admin", "doctor", "nurse", "secretary", "recepcionista"],
       user_role_enum: ["admin", "doctor", "nurse", "secretary"],
     },
   },
