@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { User, Building2, Mail, Phone, Shield, Save, Activity } from 'lucide-react';
 
 const ProfilePage = () => {
-  const { profile, updateProfile, loading } = useAuth();
+  const { user, profile, updateProfile, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     nome: profile?.nome || '',
@@ -20,6 +20,7 @@ const ProfilePage = () => {
 
   // Atualizar formData quando o profile carregar
   React.useEffect(() => {
+    console.log('ProfilePage: Profile effect triggered', { profile, user: user?.id });
     if (profile) {
       setFormData({
         nome: profile.nome || '',
@@ -27,6 +28,17 @@ const ProfilePage = () => {
       });
     }
   }, [profile]);
+
+  // Log do estado atual
+  React.useEffect(() => {
+    console.log('ProfilePage: Current state', {
+      loading,
+      hasUser: !!user,
+      hasProfile: !!profile,
+      userId: user?.id,
+      profileId: profile?.id
+    });
+  }, [loading, user, profile]);
 
   const handleSave = async () => {
     const { error } = await updateProfile(formData);
@@ -76,6 +88,18 @@ const ProfilePage = () => {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Usuário não autenticado</h2>
+          <p className="text-gray-600">Faça login para acessar seu perfil.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -83,6 +107,8 @@ const ProfilePage = () => {
           <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Perfil não encontrado</h2>
           <p className="text-gray-600">Não foi possível carregar as informações do seu perfil.</p>
+          <p className="text-sm text-gray-500 mt-2">ID do usuário: {user.id}</p>
+          <p className="text-sm text-gray-500">Verifique o console para mais detalhes.</p>
         </div>
       </div>
     );

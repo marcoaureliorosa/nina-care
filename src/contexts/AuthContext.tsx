@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('Auth state changed:', event, 'User ID:', session?.user?.id);
         
         // Update session and user synchronously
         setSession(session);
@@ -38,7 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Clear profile if no session
         if (!session) {
+          console.log('No session, clearing profile');
           setProfile(null);
+        } else {
+          console.log('Session exists, user ID:', session.user.id);
         }
         
         setLoading(false);
@@ -48,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check existing session
     const initializeAuth = async () => {
       try {
+        console.log('AuthProvider: Initializing auth state');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -56,11 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        console.log('Initial session:', session?.user?.id);
+        console.log('Initial session check - User ID:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (!session) {
+          console.log('No initial session found');
           setProfile(null);
         }
       } catch (error) {
@@ -75,7 +80,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [setProfile]);
 
+  // Log profile changes
+  useEffect(() => {
+    console.log('Profile state updated:', profile ? 'Profile loaded' : 'No profile');
+    if (profile) {
+      console.log('Profile details:', {
+        id: profile.id,
+        nome: profile.nome,
+        email: profile.email,
+        organizacao: profile.organizacoes?.nome || 'No organization'
+      });
+    }
+  }, [profile]);
+
   const signOut = async () => {
+    console.log('AuthProvider: Starting signOut');
     await authSignOut();
     // State will be cleared by the auth state change listener
   };
