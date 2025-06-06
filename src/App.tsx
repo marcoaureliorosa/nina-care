@@ -30,7 +30,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/*" element={
+            <Route path="/" element={
               <ProtectedRoute>
                 <SidebarProvider>
                   <div className="min-h-screen flex w-full bg-gray-50">
@@ -43,16 +43,147 @@ const App = () => (
                         </div>
                       </div>
                       <div className="flex-1 p-6 overflow-auto">
-                        <Routes>
-                          <Route path="/" element={<Index />} />
-                          <Route path="/conversas" element={<ConversasPage />} />
-                          <Route path="/pacientes" element={<PacientesPage />} />
-                          <Route path="/agenda" element={<AgendaPage />} />
-                          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
-                          <Route path="/perfil" element={<ProfilePage />} />
-                          <Route path="/admin" element={<AdminPage />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
+                        <Index />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/conversas" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <ConversasPage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/pacientes" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <PacientesPage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/agenda" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <AgendaPage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/configuracoes" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <ConfiguracoesPage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/perfil" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <ProfilePage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <AdminPage />
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full bg-gray-50">
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                      <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+                        <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-6 overflow-auto">
+                        <NotFound />
                       </div>
                     </main>
                   </div>
