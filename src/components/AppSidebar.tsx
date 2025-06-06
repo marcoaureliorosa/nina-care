@@ -1,5 +1,5 @@
 
-import { MessageSquare, Users, Activity, Settings, Home, Calendar, User } from "lucide-react"
+import { MessageSquare, Users, Activity, Settings, Home, Calendar, User, Shield } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +13,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import { useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 const menuItems = [
   {
@@ -47,8 +48,22 @@ const menuItems = [
   },
 ]
 
+const adminMenuItems = [
+  {
+    title: "Painel Admin",
+    url: "/admin",
+    icon: Shield,
+  },
+]
+
 export function AppSidebar() {
   const location = useLocation()
+  const { profile } = useAuth()
+
+  const allMenuItems = [
+    ...menuItems,
+    ...(profile?.role === 'admin' ? adminMenuItems : [])
+  ]
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -71,7 +86,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {allMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 

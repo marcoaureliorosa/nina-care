@@ -352,6 +352,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          can_manage_organizations: boolean | null
           created_at: string
           email: string
           id: string
@@ -364,6 +365,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          can_manage_organizations?: boolean | null
           created_at?: string
           email: string
           id: string
@@ -376,6 +378,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          can_manage_organizations?: boolean | null
           created_at?: string
           email?: string
           id?: string
@@ -392,6 +395,48 @@ export type Database = {
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_organizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          organizacao_id: string | null
+          role: Database["public"]["Enums"]["user_role_enum"]
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          organizacao_id?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          organizacao_id?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_organizations_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_organizations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

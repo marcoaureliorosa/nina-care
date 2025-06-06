@@ -16,6 +16,7 @@ import AgendaPage from "./pages/AgendaPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
                           <Route path="/agenda" element={<AgendaPage />} />
                           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
                           <Route path="/perfil" element={<ProfilePage />} />
+                          <Route path="/admin" element={<AdminPage />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </div>
