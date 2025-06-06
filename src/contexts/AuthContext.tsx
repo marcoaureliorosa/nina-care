@@ -31,8 +31,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
+        
+        // Update session and user synchronously
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Clear profile if no session
+        if (!session) {
+          setProfile(null);
+        }
         
         setLoading(false);
       }
@@ -52,6 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Initial session:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (!session) {
+          setProfile(null);
+        }
       } catch (error) {
         console.error('Error in initializeAuth:', error);
       } finally {
@@ -62,13 +73,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [setProfile]);
 
   const signOut = async () => {
     await authSignOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
+    // State will be cleared by the auth state change listener
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {

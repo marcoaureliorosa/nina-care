@@ -3,12 +3,24 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { UserProfile } from '@/types/auth';
+import { cleanupAuthState } from '@/utils/authCleanup';
 
 export const useAuthOperations = () => {
   const { toast } = useToast();
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Clean up existing state first
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+        console.log('Global signout failed, continuing:', err);
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -35,13 +47,32 @@ export const useAuthOperations = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.log('Starting signout process...');
+      
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        if (error) {
+          console.error('Supabase signout error:', error);
+        }
+      } catch (err) {
+        console.error('Global signout failed:', err);
+        // Continue with cleanup even if this fails
+      }
       
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado com sucesso.",
       });
+
+      // Force page reload for a clean state
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 500);
+      
     } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
@@ -49,6 +80,11 @@ export const useAuthOperations = () => {
         description: error.message,
         variant: "destructive",
       });
+      
+      // Force page reload even on error
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1000);
     }
   };
 

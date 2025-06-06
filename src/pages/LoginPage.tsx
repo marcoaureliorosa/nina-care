@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Activity, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { cleanupAuthState } from '@/utils/authCleanup';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -34,6 +35,13 @@ const LoginPage = () => {
     }
   }, [user, loading, navigate, isPasswordRecovery]);
 
+  // Clean up auth state when component mounts
+  useEffect(() => {
+    if (!user) {
+      cleanupAuthState();
+    }
+  }, [user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -41,7 +49,8 @@ const LoginPage = () => {
     const { error } = await signIn(email, password);
     
     if (!error) {
-      navigate('/');
+      // Force page reload for clean state
+      window.location.href = '/';
     }
     
     setIsLoading(false);
