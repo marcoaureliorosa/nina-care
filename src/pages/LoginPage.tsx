@@ -7,14 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user && !loading) {
@@ -33,6 +39,45 @@ const LoginPage = () => {
     }
     
     setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, digite seu email para recuperar a senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResetting(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+      });
+
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast({
+        title: "Erro ao enviar email",
+        description: error.message || "Não foi possível enviar o email de recuperação.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   if (loading) {
@@ -63,72 +108,132 @@ const LoginPage = () => {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Acesso ao Sistema</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {showForgotPassword ? 'Recuperar Senha' : 'Acesso ao Sistema'}
+            </CardTitle>
             <CardDescription>
-              Entre com suas credenciais para acessar a plataforma
+              {showForgotPassword 
+                ? 'Digite seu email para receber instruções de redefinição' 
+                : 'Entre com suas credenciais para acessar a plataforma'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="seu@email.com"
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
+            {showForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    id="resetEmail"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
                     required
-                    placeholder="Digite sua senha"
-                    className="w-full pr-10"
+                    placeholder="seu@email.com"
+                    className="w-full"
                   />
+                </div>
+
+                <div className="space-y-4">
+                  <Button
+                    type="submit"
+                    disabled={isResetting || !resetEmail}
+                    className="w-full bg-ninacare-primary hover:bg-ninacare-primary/90"
+                  >
+                    {isResetting ? (
+                      <>
+                        <Activity className="mr-2 h-4 w-4 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      'Enviar Email de Recuperação'
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="w-full"
+                  >
+                    Voltar ao Login
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="seu@email.com"
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="Digite sua senha"
+                      className="w-full pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || !email || !password}
+                  className="w-full bg-ninacare-primary hover:bg-ninacare-primary/90"
+                >
+                  {isLoading ? (
+                    <>
+                      <Activity className="mr-2 h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    'Entrar'
+                  )}
+                </Button>
+
+                <div className="text-center">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-ninacare-primary hover:text-ninacare-primary/80 underline"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
+                    Esqueci minha senha
                   </button>
                 </div>
+              </form>
+            )}
+
+            {!showForgotPassword && (
+              <div className="mt-6 text-center text-sm text-gray-600">
+                <p>Não possui acesso?</p>
+                <p>Entre em contato com a administração da Ninacare</p>
               </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading || !email || !password}
-                className="w-full bg-ninacare-primary hover:bg-ninacare-primary/90"
-              >
-                {isLoading ? (
-                  <>
-                    <Activity className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center text-sm text-gray-600">
-              <p>Não possui acesso?</p>
-              <p>Entre em contato com a administração da Ninacare</p>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
