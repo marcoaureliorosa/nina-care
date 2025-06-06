@@ -38,7 +38,9 @@ const App = () => (
                     <main className="flex-1 flex flex-col">
                       <div className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
                         <SidebarTrigger className="text-ninacare-primary hover:text-ninacare-primary/80" />
-                        <UserMenu />
+                        <div className="flex items-center">
+                          <UserMenu />
+                        </div>
                       </div>
                       <div className="flex-1 p-6 overflow-auto">
                         <Routes>

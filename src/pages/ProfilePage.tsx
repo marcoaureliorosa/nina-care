@@ -8,15 +8,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Building2, Mail, Phone, Shield, Save } from 'lucide-react';
+import { User, Building2, Mail, Phone, Shield, Save, Activity } from 'lucide-react';
 
 const ProfilePage = () => {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     nome: profile?.nome || '',
     telefone: profile?.telefone || '',
   });
+
+  // Atualizar formData quando o profile carregar
+  React.useEffect(() => {
+    if (profile) {
+      setFormData({
+        nome: profile.nome || '',
+        telefone: profile.telefone || '',
+      });
+    }
+  }, [profile]);
 
   const handleSave = async () => {
     const { error } = await updateProfile(formData);
@@ -55,10 +65,25 @@ const ProfilePage = () => {
     return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-ninacare-primary animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-600">Carregando perfil...</p>
+        <div className="text-center">
+          <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Perfil não encontrado</h2>
+          <p className="text-gray-600">Não foi possível carregar as informações do seu perfil.</p>
+        </div>
       </div>
     );
   }
@@ -111,7 +136,7 @@ const ProfilePage = () => {
               )}
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-600">{profile.organizacoes?.nome}</span>
+                <span className="text-gray-600">{profile.organizacoes?.nome || 'Sem organização'}</span>
               </div>
             </div>
           </CardContent>
@@ -199,7 +224,7 @@ const ProfilePage = () => {
             <div className="space-y-2">
               <Label>Organização</Label>
               <div className="px-3 py-2 bg-gray-50 rounded-md text-gray-900">
-                <div className="font-medium">{profile.organizacoes?.nome}</div>
+                <div className="font-medium">{profile.organizacoes?.nome || 'Sem organização'}</div>
                 {profile.organizacoes?.cnpj && (
                   <div className="text-sm text-gray-500 mt-1">
                     CNPJ: {profile.organizacoes.cnpj}
