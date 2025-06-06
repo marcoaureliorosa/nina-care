@@ -35,10 +35,10 @@ const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
             <AvatarImage src={profile.avatar_url} alt={profile.nome} />
-            <AvatarFallback className="bg-ninacare-primary text-white text-xs">
+            <AvatarFallback className="bg-ninacare-primary text-white text-sm">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -51,6 +51,11 @@ const UserMenu = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {profile.email}
             </p>
+            {profile.organizacoes?.nome && (
+              <p className="text-xs leading-none text-muted-foreground">
+                {profile.organizacoes.nome}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -63,7 +68,7 @@ const UserMenu = () => {
           <span>Configurações</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
+        <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>
         </DropdownMenuItem>
