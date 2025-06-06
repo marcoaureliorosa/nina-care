@@ -15,12 +15,23 @@ import { Button } from '@/components/ui/button';
 import { User, LogOut, Settings } from 'lucide-react';
 
 const UserMenu = () => {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
-  if (!profile) return null;
+  console.log('UserMenu - user:', user?.id);
+  console.log('UserMenu - profile:', profile);
 
-  const initials = profile.nome
+  // Se não há usuário logado, não mostrar o menu
+  if (!user) {
+    console.log('UserMenu - no user, not rendering');
+    return null;
+  }
+
+  // Usar dados do usuário ou do perfil para criar as iniciais
+  const displayName = profile?.nome || user.email || 'Usuário';
+  const displayEmail = profile?.email || user.email || '';
+  
+  const initials = displayName
     .split(' ')
     .map(name => name[0])
     .join('')
@@ -28,6 +39,7 @@ const UserMenu = () => {
     .slice(0, 2);
 
   const handleSignOut = async () => {
+    console.log('UserMenu - starting signout');
     await signOut();
     navigate('/login');
   };
@@ -37,7 +49,7 @@ const UserMenu = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={profile.avatar_url} alt={profile.nome} />
+            <AvatarImage src={profile?.avatar_url} alt={displayName} />
             <AvatarFallback className="bg-ninacare-primary text-white text-sm">
               {initials}
             </AvatarFallback>
@@ -47,11 +59,11 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{profile.nome}</p>
+            <p className="text-sm font-medium leading-none">{displayName}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {profile.email}
+              {displayEmail}
             </p>
-            {profile.organizacoes?.nome && (
+            {profile?.organizacoes?.nome && (
               <p className="text-xs leading-none text-muted-foreground">
                 {profile.organizacoes.nome}
               </p>
