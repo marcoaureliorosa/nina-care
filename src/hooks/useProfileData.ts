@@ -5,54 +5,38 @@ import { UserProfile } from '@/types/auth';
 
 export const useProfileData = (userId: string | undefined) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = async (userIdToFetch: string) => {
     try {
       console.log('Fetching profile for user:', userIdToFetch);
+      setError(null);
       
-      // First, try to get the profile with a simple query
+      // Buscar o perfil com join para organização
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          organizacoes (
+            nome,
+            cnpj
+          )
+        `)
         .eq('id', userIdToFetch)
         .single();
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
-        throw profileError;
+        setError(profileError.message);
+        setProfile(null);
+        return;
       }
       
-      console.log('Profile data fetched:', profileData);
-
-      // If we have a profile, try to get the organization data separately
-      let organizationData = null;
-      if (profileData.organizacao_id) {
-        console.log('Fetching organization for id:', profileData.organizacao_id);
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizacoes')
-          .select('nome, cnpj')
-          .eq('id', profileData.organizacao_id)
-          .single();
-
-        if (orgError) {
-          console.warn('Error fetching organization:', orgError);
-          // Don't throw here, just continue without organization data
-        } else {
-          organizationData = orgData;
-          console.log('Organization data fetched:', organizationData);
-        }
-      }
-
-      // Combine the data
-      const completeProfile = {
-        ...profileData,
-        organizacoes: organizationData
-      };
-
-      console.log('Complete profile data:', completeProfile);
-      setProfile(completeProfile);
-    } catch (error) {
+      console.log('Profile data fetched successfully:', profileData);
+      setProfile(profileData);
+    } catch (error: any) {
       console.error('Error in fetchProfile:', error);
+      setError(error.message || 'Erro ao carregar perfil');
       setProfile(null);
     }
   };
@@ -60,13 +44,16 @@ export const useProfileData = (userId: string | undefined) => {
   useEffect(() => {
     if (userId) {
       console.log('useProfileData effect triggered for userId:', userId);
-      // Use setTimeout to avoid concurrency issues
-      setTimeout(() => {
+      // Usar setTimeout para evitar problemas de concorrência
+      const timeoutId = setTimeout(() => {
         fetchProfile(userId);
       }, 100);
+      
+      return () => clearTimeout(timeoutId);
     } else {
       console.log('No userId provided, setting profile to null');
       setProfile(null);
+      setError(null);
     }
   }, [userId]);
 
@@ -79,5 +66,6 @@ export const useProfileData = (userId: string | undefined) => {
     setProfile,
     fetchProfile,
     updateProfileData,
+    error,
   };
 };

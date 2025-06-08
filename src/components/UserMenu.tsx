@@ -18,17 +18,13 @@ const UserMenu = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
-  console.log('UserMenu - user:', user?.id);
-  console.log('UserMenu - profile:', profile);
-
   // Se não há usuário logado, não mostrar o menu
   if (!user) {
-    console.log('UserMenu - no user, not rendering');
     return null;
   }
 
-  // Usar dados do usuário ou do perfil para criar as iniciais
-  const displayName = profile?.nome || user.email || 'Usuário';
+  // Usar dados do perfil quando disponível, fallback para dados básicos do auth
+  const displayName = profile?.nome || user.email?.split('@')[0] || 'Usuário';
   const displayEmail = profile?.email || user.email || '';
   
   const initials = displayName

@@ -8,11 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Building2, Mail, Phone, Shield, Save, Activity } from 'lucide-react';
+import { User, Building2, Mail, Phone, Shield, Save, Activity, RefreshCw, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ProfilePage = () => {
   const { user, profile, updateProfile, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [formData, setFormData] = useState({
     nome: profile?.nome || '',
     telefone: profile?.telefone || '',
@@ -20,7 +22,7 @@ const ProfilePage = () => {
 
   // Atualizar formData quando o profile carregar
   React.useEffect(() => {
-    console.log('ProfilePage: Profile effect triggered', { profile, user: user?.id });
+    console.log('ProfilePage: Profile effect triggered');
     if (profile) {
       setFormData({
         nome: profile.nome || '',
@@ -29,14 +31,13 @@ const ProfilePage = () => {
     }
   }, [profile]);
 
-  // Log do estado atual
+  // Log do estado atual (apenas para debug, sem dados sensíveis)
   React.useEffect(() => {
     console.log('ProfilePage: Current state', {
       loading,
       hasUser: !!user,
       hasProfile: !!profile,
-      userId: user?.id,
-      profileId: profile?.id
+      userEmail: user?.email // Email não é sensível como ID
     });
   }, [loading, user, profile]);
 
@@ -53,6 +54,11 @@ const ProfilePage = () => {
       telefone: profile?.telefone || '',
     });
     setIsEditing(false);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    window.location.reload(); // Força recarregamento completo
   };
 
   const getRoleLabel = (role: string) => {
@@ -100,20 +106,90 @@ const ProfilePage = () => {
     );
   }
 
-  if (!profile) {
+  // Se não há perfil mas há usuário, usar dados básicos do auth.users
+  if (!profile && user) {
+    const displayName = user.email?.split('@')[0] || 'Usuário';
+    const initials = displayName.slice(0, 2).toUpperCase();
+
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Perfil não encontrado</h2>
-          <p className="text-gray-600">Não foi possível carregar as informações do seu perfil.</p>
-          <p className="text-sm text-gray-500 mt-2">ID do usuário: {user.id}</p>
-          <p className="text-sm text-gray-500">Verifique o console para mais detalhes.</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Meu Perfil</h1>
+          <p className="text-gray-600 mt-1">Gerencie suas informações pessoais e configurações</p>
+        </div>
+
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Não foi possível carregar todas as informações do seu perfil. Algumas funcionalidades podem estar limitadas.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry}
+              className="ml-2"
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Card básico com dados do auth.users */}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <Avatar className="w-24 h-24">
+                  <AvatarFallback className="text-lg font-semibold bg-ninacare-primary text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <CardTitle className="text-xl">{displayName}</CardTitle>
+              <CardDescription>
+                Dados básicos disponíveis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600">{user.email}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de mensagem */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-500" />
+                Perfil Incompleto
+              </CardTitle>
+              <CardDescription>
+                Entre em contato com o administrador para completar seu perfil
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Algumas informações do seu perfil não puderam ser carregadas. 
+                Isso pode acontecer se seu perfil ainda não foi configurado completamente pelo administrador.
+              </p>
+              <div className="flex gap-3">
+                <Button onClick={handleRetry} variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Tentar Recarregar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
+  // Se há profile, mostrar interface completa
   const initials = profile.nome
     .split(' ')
     .map(name => name[0])

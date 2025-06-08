@@ -12,7 +12,14 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ userProfile }: DashboardHeaderProps) => {
   const { user, profile } = useAuth();
   
-  const organizationName = userProfile?.organizacoes?.nome || profile?.organizacoes?.nome || 'Organização não encontrada';
+  // Usar dados do perfil completo, fallback para dados básicos do auth, ou mensagem padrão
+  const organizationName = userProfile?.organizacoes?.nome || 
+                          profile?.organizacoes?.nome || 
+                          'Carregando organização...';
+  
+  const userName = profile?.nome || 
+                   user?.email?.split('@')[0] || 
+                   'Usuário';
 
   return (
     <div className="border-b border-gray-200 pb-6">
@@ -24,7 +31,7 @@ const DashboardHeader = ({ userProfile }: DashboardHeaderProps) => {
         Organização: {organizationName}
       </p>
       <p className="text-xs text-gray-400">
-        Usuário: {profile?.nome || user?.email}
+        Usuário: {userName}
       </p>
     </div>
   );

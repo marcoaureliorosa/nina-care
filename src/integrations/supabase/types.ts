@@ -9,56 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      contatos_agente: {
-        Row: {
-          agente: string | null
-          created_at: string | null
-          email: string | null
-          id: number
-          interesse_duvida: string | null
-          paciente_id: string | null
-          role: string | null
-          status: string | null
-          user_name: string | null
-          user_number: string | null
-          user_profile: string | null
-        }
-        Insert: {
-          agente?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: number
-          interesse_duvida?: string | null
-          paciente_id?: string | null
-          role?: string | null
-          status?: string | null
-          user_name?: string | null
-          user_number?: string | null
-          user_profile?: string | null
-        }
-        Update: {
-          agente?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: number
-          interesse_duvida?: string | null
-          paciente_id?: string | null
-          role?: string | null
-          status?: string | null
-          user_name?: string | null
-          user_number?: string | null
-          user_profile?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contatos_agente_paciente_id_fkey"
-            columns: ["paciente_id"]
-            isOneToOne: false
-            referencedRelation: "pacientes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       conversas: {
         Row: {
           agente: string
@@ -146,23 +96,40 @@ export type Database = {
       follow_up: {
         Row: {
           created_at: string | null
+          dt_envio: string
           id: number
-          last_message: string | null
+          status: string
+          tag: string
           user_number: string | null
+          userid: string
         }
         Insert: {
           created_at?: string | null
+          dt_envio: string
           id?: number
-          last_message?: string | null
+          status?: string
+          tag: string
           user_number?: string | null
+          userid: string
         }
         Update: {
           created_at?: string | null
+          dt_envio?: string
           id?: number
-          last_message?: string | null
+          status?: string
+          tag?: string
           user_number?: string | null
+          userid?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_userid_fkey"
+            columns: ["userid"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medicos: {
         Row: {
@@ -243,6 +210,24 @@ export type Database = {
           },
         ]
       }
+      n8n_chat_histories: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
       organizacoes: {
         Row: {
           cnpj: string | null
@@ -283,8 +268,10 @@ export type Database = {
           data_nascimento: string | null
           email: string
           id: string
+          nina_status: boolean
           nome: string
           organizacao_id: string | null
+          resumo: string | null
           telefone: string
           updated_at: string
         }
@@ -294,8 +281,10 @@ export type Database = {
           data_nascimento?: string | null
           email: string
           id?: string
+          nina_status?: boolean
           nome: string
           organizacao_id?: string | null
+          resumo?: string | null
           telefone: string
           updated_at?: string
         }
@@ -305,8 +294,10 @@ export type Database = {
           data_nascimento?: string | null
           email?: string
           id?: string
+          nina_status?: boolean
           nome?: string
           organizacao_id?: string | null
+          resumo?: string | null
           telefone?: string
           updated_at?: string
         }
