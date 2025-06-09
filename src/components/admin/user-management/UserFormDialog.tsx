@@ -17,7 +17,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Plus, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { UserProfile, Organization, UserFormData } from './types';
 
 interface UserFormDialogProps {
@@ -30,6 +33,7 @@ interface UserFormDialogProps {
   loading: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onDialogClose: () => void;
+  onDelete?: (id: string) => void;
   hideOrganizationSelect?: boolean;
 }
 
@@ -43,6 +47,7 @@ const UserFormDialog = ({
   loading,
   onSubmit,
   onDialogClose,
+  onDelete,
   hideOrganizationSelect
 }: UserFormDialogProps) => {
   return (
@@ -154,18 +159,80 @@ const UserFormDialog = ({
             </div>
           )}
 
-          <div className="flex gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onDialogClose}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Salvando...' : (editingUser ? 'Atualizar' : 'Criar')}
-            </Button>
+          <div className="space-y-2">
+            <Label htmlFor="avatar_url">URL do Avatar</Label>
+            <Input
+              id="avatar_url"
+              value={formData.avatar_url || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
+              placeholder="https://exemplo.com/avatar.jpg"
+            />
+          </div>
+
+          <div className="flex items-center justify-between space-x-2">
+            <div className="space-y-0.5">
+              <Label htmlFor="is_active">Usuário Ativo</Label>
+              <div className="text-[0.8rem] text-muted-foreground">
+                Permite que o usuário acesse o sistema
+              </div>
+            </div>
+            <Switch
+              id="is_active"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+            />
+          </div>
+
+          <div className="flex items-center justify-between space-x-2">
+            <div className="space-y-0.5">
+              <Label htmlFor="can_manage_organizations">Gerenciar Organizações</Label>
+              <div className="text-[0.8rem] text-muted-foreground">
+                Permite criar e gerenciar organizações
+              </div>
+            </div>
+            <Switch
+              id="can_manage_organizations"
+              checked={formData.can_manage_organizations || false}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, can_manage_organizations: checked }))}
+            />
+          </div>
+
+          <div className="space-y-4 pt-4">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onDialogClose}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? 'Salvando...' : (editingUser ? 'Atualizar' : 'Criar')}
+              </Button>
+            </div>
+
+            {editingUser && onDelete && (
+              <>
+                <Separator />
+                <div className="flex justify-center pt-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                        onDelete(editingUser.id);
+                      }
+                    }}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Excluir usuário
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </form>
       </DialogContent>

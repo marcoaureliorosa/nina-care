@@ -34,27 +34,25 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Usuários Cadastrados</h3>
-        <UserFormDialog
-          dialogOpen={dialogOpen}
-          setDialogOpen={setDialogOpen}
-          editingUser={editingUser}
-          formData={formData}
-          setFormData={setFormData}
-          organizations={filteredOrganizations}
-          loading={loading}
-          onSubmit={handleSubmit}
-          onDialogClose={handleDialogClose}
-          hideOrganizationSelect={onlyCurrentOrganization}
-        />
-      </div>
+      <UserFormDialog
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        editingUser={editingUser}
+        formData={formData}
+        setFormData={setFormData}
+        organizations={filteredOrganizations}
+        loading={loading}
+        onSubmit={handleSubmit}
+        onDialogClose={handleDialogClose}
+        onDelete={deleteUser}
+        hideOrganizationSelect={onlyCurrentOrganization}
+      />
 
       <UserTable
         users={filteredUsers}
         currentUserId={profile?.id}
         onEdit={handleEdit}
-        onDelete={deleteUser}
+        onOpenDialog={() => setDialogOpen(true)}
       />
     </div>
   );

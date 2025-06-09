@@ -1,8 +1,9 @@
-import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, StarOff } from "lucide-react";
+import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, StarOff, User, Phone, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ConversationCardProps {
   conversation: {
@@ -11,6 +12,7 @@ interface ConversationCardProps {
     pacientes?: {
       nome?: string;
       telefone?: string;
+      avatar_url?: string;
     };
     is_priority?: boolean;
     is_read?: boolean;
@@ -21,9 +23,12 @@ interface ConversationCardProps {
     timestamp_ultima_mensagem?: string;
     updated_at: string;
   };
+  compact?: boolean;
+  onClick?: () => void;
+  selected?: boolean;
 }
 
-const ConversationCard = ({ conversation }: ConversationCardProps) => {
+const ConversationCard = ({ conversation, compact, onClick, selected }: ConversationCardProps) => {
   const navigate = useNavigate();
   const [isPriority, setIsPriority] = useState(conversation.is_priority);
   const [isRead, setIsRead] = useState(conversation.is_read);
@@ -69,31 +74,31 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'em_acompanhamento':
-        return 'bg-blue-100 text-blue-800'
-      case 'humano_solicitado':
-        return 'bg-red-100 text-red-800'
-      case 'finalizada':
-        return 'bg-green-100 text-green-800'
       case 'aguardando_ativacao':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'em_acompanhamento':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'humano_solicitado':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'finalizada':
+        return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-zinc-100 text-zinc-700 border-zinc-200';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'em_acompanhamento':
-        return 'Em Acompanhamento'
+        return 'Em Acompanhamento';
       case 'humano_solicitado':
-        return 'Humano Solicitado'
+        return 'Humano Solicitado';
       case 'finalizada':
-        return 'Finalizada'
+        return 'Finalizada';
       case 'aguardando_ativacao':
-        return 'Aguardando Ativação'
+        return 'Aguardando Ativação';
       default:
-        return status
+        return status;
     }
   };
 
@@ -107,61 +112,52 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
     })
   };
 
+  // Acessibilidade: iniciais do paciente
+  const getInitials = (nome?: string) => {
+    if (!nome) return "?";
+    return nome.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
   return (
     <div 
-      className={`p-5 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${
-        !isRead ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'
-      }`}
-      onClick={() => navigate(`/conversas/${conversation.id}`)}
+      className={`group relative flex items-stretch gap-4 p-6 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer bg-white/90 overflow-hidden ${selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200'}`}
+      tabIndex={0}
+      onClick={onClick}
+      aria-label={`Abrir conversa de ${conversation.pacientes?.nome || 'Paciente'}`}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center gap-2">
-              {getStatusIcon(conversation.status)}
-              <h3 className="font-semibold text-gray-900 flex items-center gap-1">
-                {conversation.pacientes?.nome || 'Paciente não identificado'}
-                <button
-                  onClick={togglePriority}
-                  className={`ml-1 ${loadingPriority ? 'opacity-50 pointer-events-none' : ''}`}
-                  title={isPriority ? 'Remover prioridade' : 'Marcar como prioritária'}
-                  aria-label="Alternar prioridade"
-                >
-                  {isPriority ? <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" /> : <StarOff className="w-4 h-4 text-gray-400" />}
-                </button>
-              </h3>
-            </div>
-            <Badge className={getStatusColor(conversation.status)}>
-              {getStatusLabel(conversation.status)}
-            </Badge>
-            {conversation.unread_count && conversation.unread_count > 0 && !conversation.is_read && (
-              <Badge variant="secondary">
-                {conversation.unread_count} nova{conversation.unread_count > 1 ? 's' : ''}
-              </Badge>
-            )}
-          </div>
-          
-          <div className="text-sm text-gray-600 mb-2">
-            <strong>Telefone:</strong> {conversation.pacientes?.telefone || 'N/A'}
-          </div>
-
-          {conversation.ultima_mensagem && (
-            <div className="text-sm text-gray-700 mb-2">
-              <strong>Última mensagem:</strong> {conversation.ultima_mensagem}
-            </div>
-          )}
-
-          {conversation.resumo_conversa && (
-            <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700">
-              <strong>Resumo:</strong> {conversation.resumo_conversa}
-            </div>
+      {/* Avatar */}
+      <Avatar className="h-12 w-12 shadow border-2 border-white">
+        <AvatarFallback className="bg-ninacare-primary text-white text-lg font-bold">{getInitials(conversation.pacientes?.nome)}</AvatarFallback>
+      </Avatar>
+      {/* Bloco principal */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-lg text-zinc-900 truncate">{conversation.pacientes?.nome || 'Paciente não identificado'}</span>
+          {conversation.is_priority && (
+            <Star className="w-4 h-4 text-yellow-400 ml-1" aria-label="Prioritária" />
           )}
         </div>
-        
-        <div className="text-right text-sm text-gray-500">
-          <div>Agente: {conversation.agente}</div>
-          <div>{formatTime(conversation.timestamp_ultima_mensagem || conversation.updated_at)}</div>
+        {/* Badge de status sempre abaixo do nome */}
+        <div className="mt-1 mb-1">
+          <Badge className={`${getStatusColor(conversation.status)} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none`}>{getStatusLabel(conversation.status)}</Badge>
         </div>
+        <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+          <Phone className="w-4 h-4" />
+          <span className="truncate">{conversation.pacientes?.telefone || ''}</span>
+        </div>
+        {/* Resumo em balão visual */}
+        {conversation.resumo_conversa && (
+          <div className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-700 text-sm mt-1 mb-1">
+            <span className="font-medium text-zinc-500">Resumo: </span>{conversation.resumo_conversa}
+          </div>
+        )}
+      </div>
+      {/* Bloco à direita */}
+      <div className="flex flex-col items-end justify-between min-w-[80px]">
+        <span className="text-xs text-zinc-400 font-mono mb-2">{formatTime(conversation.updated_at)}</span>
+        <span className="text-xs text-zinc-500">Agente:</span>
+        <span className="text-xs text-zinc-700 font-semibold">{conversation.agente}</span>
       </div>
     </div>
   );

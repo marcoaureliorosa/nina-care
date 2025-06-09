@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import PatientsHeader from "@/components/patients/PatientsHeader";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 const PacientesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -208,133 +211,116 @@ const PacientesPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Pacientes</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-ninacare-primary hover:bg-ninacare-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Paciente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Cadastro de Paciente</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo <span className="text-red-500">*</span></Label>
-                <Input id="name" name="name" placeholder="Digite o nome completo" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cpf">CPF <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="cpf" name="cpf" placeholder="000.000.000-00" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="email" name="email" type="email" placeholder="email@exemplo.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone <span className="text-red-500">*</span></Label>
-                <InputMaskPhone id="phone" name="phone" placeholder="(00) 00000-0000" required pattern="\\d{11}" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="birthDate" name="birthDate" type="date" />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
-                  disabled={createPatientMutation.isPending}
-                >
-                  {createPatientMutation.isPending ? 'Cadastrando...' : 'Cadastrar'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input 
-                placeholder="Buscar pacientes..." 
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+    <div className="w-full min-h-[calc(100vh-80px)] flex flex-col items-center bg-zinc-50">
+      {/* Banner premium no topo */}
+      <div className="w-full flex flex-col items-center max-w-7xl mx-auto">
+        <div className="w-full pt-8 pb-4">
+          <PatientsHeader />
+        </div>
+        {/* Filtros e busca premium horizontal */}
+        <div className="w-full flex flex-wrap gap-3 items-center bg-white/80 rounded-xl shadow p-4 md:p-6 mb-6">
+          <div className="flex-1 min-w-[220px]">
+            <Input
+              placeholder="Buscar por nome, CPF ou email"
+              className="pl-10 h-11 rounded-lg border border-zinc-200 bg-white/90 shadow-sm focus:ring-2 focus:ring-ninacare-primary placeholder:text-zinc-400 text-base transition-all w-full"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
           </div>
-        </CardHeader>
-        <CardContent>
+          {/* Filtros de status, etc, podem ser adicionados aqui como chips/badges */}
+          {/* Botão de adicionar paciente */}
+          <Button className="ml-auto px-4 py-2 rounded-full text-sm font-medium bg-ninacare-primary text-white hover:bg-ninacare-primary/90 transition" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" /> Novo Paciente
+          </Button>
+        </div>
+        {/* Grid de cards de pacientes */}
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Carregando pacientes...</p>
-            </div>
+            <div className="col-span-full text-center text-zinc-500">Carregando...</div>
+          ) : (patients && patients.length > 0 ? (
+            patients.map((patient: any) => (
+              <Card key={patient.id} className="rounded-2xl border bg-white/90 shadow-md hover:shadow-lg transition-all flex flex-col p-6">
+                <div className="flex items-center gap-4 mb-3">
+                  <Avatar className="h-12 w-12 shadow border-2 border-white bg-ninacare-primary/10">
+                    <AvatarFallback className="bg-ninacare-primary text-white text-lg font-bold">{patient.nome?.[0] || '?'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-lg text-zinc-900 truncate block">{patient.nome}</span>
+                    <Badge className={`${patient.nina_status ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-zinc-200 text-zinc-600 border-zinc-300'} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none mt-1`}>
+                      {patient.nina_status ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
+                  {/* Ações rápidas */}
+                  <div className="flex flex-col gap-2 items-end">
+                    <Button size="icon" variant="ghost" onClick={() => handleEditPatient(patient)} aria-label="Editar paciente"><Edit className="w-4 h-4" /></Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeletePatient(patient.id)} aria-label="Excluir paciente"><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+                  <span className="font-medium">Telefone:</span>
+                  <span className="truncate">{patient.telefone || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+                  <span className="font-medium">E-mail:</span>
+                  <span className="truncate">{patient.email || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+                  <span className="font-medium">CPF:</span>
+                  <span className="truncate">{patient.cpf || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-zinc-400 text-xs mt-2">
+                  <span>Cadastro:</span>
+                  <span>{formatDate(patient.created_at)}</span>
+                </div>
+              </Card>
+            ))
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>CPF</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Data Nascimento</TableHead>
-                  <TableHead>Procedimentos</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {patients && patients.length > 0 ? (
-                  patients.map((patient) => (
-                    <TableRow key={patient.id}>
-                      <TableCell className="font-medium">{patient.nome}</TableCell>
-                      <TableCell>{patient.cpf}</TableCell>
-                      <TableCell>{patient.email}</TableCell>
-                      <TableCell>{patient.telefone}</TableCell>
-                      <TableCell>
-                        {patient.data_nascimento ? formatDate(patient.data_nascimento) : '-'}
-                      </TableCell>
-                      <TableCell>{patient.procedimentos?.length || 0}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditPatient(patient)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleDeletePatient(patient.id)}
-                            disabled={deletePatientMutation.isPending && deletingPatientId === patient.id}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <p className="text-gray-500">
-                        {searchTerm ? 'Nenhum paciente encontrado' : 'Nenhum paciente cadastrado'}
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+            <div className="col-span-full text-center text-zinc-400 py-12">Nenhum paciente encontrado</div>
+          ))}
+        </div>
+      </div>
+      {/* Diálogos de cadastro/edição/exclusão permanecem */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cadastro de Paciente</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome Completo <span className="text-red-500">*</span></Label>
+              <Input id="name" name="name" placeholder="Digite o nome completo" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF <span className="text-gray-400">(opcional)</span></Label>
+              <Input id="cpf" name="cpf" placeholder="000.000.000-00" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail <span className="text-gray-400">(opcional)</span></Label>
+              <Input id="email" name="email" type="email" placeholder="email@exemplo.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefone <span className="text-red-500">*</span></Label>
+              <InputMaskPhone id="phone" name="phone" placeholder="(00) 00000-0000" required pattern="\\d{11}" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
+              <Input id="birthDate" name="birthDate" type="date" />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                type="submit" 
+                className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
+                disabled={createPatientMutation.isPending}
+              >
+                {createPatientMutation.isPending ? 'Cadastrando...' : 'Cadastrar'}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {deletingPatientId && (
         <Dialog open={!!deletingPatientId} onOpenChange={cancelDeletePatient}>

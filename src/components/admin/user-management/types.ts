@@ -8,6 +8,8 @@ export interface UserProfile {
   role: 'admin' | 'doctor' | 'nurse' | 'secretary' | 'recepcionista';
   is_active: boolean;
   organizacao_id: string;
+  avatar_url?: string;
+  can_manage_organizations?: boolean;
   created_at: string;
   organizacoes?: {
     nome: string;
@@ -26,5 +28,7 @@ export interface UserFormData {
   role: string;
   organizacao_id: string;
   is_active: boolean;
+  avatar_url?: string;
+  can_manage_organizations?: boolean;
   password?: string;
 }

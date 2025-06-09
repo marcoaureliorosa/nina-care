@@ -17,7 +17,9 @@ export const useUserForm = (
     telefone: '',
     role: 'recepcionista',
     organizacao_id: '',
-    is_active: true
+    is_active: true,
+    avatar_url: '',
+    can_manage_organizations: false
   });
 
   const resetForm = () => {
@@ -27,7 +29,9 @@ export const useUserForm = (
       telefone: '',
       role: 'recepcionista',
       organizacao_id: profile?.organizacao_id || '',
-      is_active: true
+      is_active: true,
+      avatar_url: '',
+      can_manage_organizations: false
     });
     setEditingUser(null);
   };
@@ -40,7 +44,9 @@ export const useUserForm = (
       telefone: user.telefone || '',
       role: user.role,
       organizacao_id: user.organizacao_id,
-      is_active: user.is_active
+      is_active: user.is_active,
+      avatar_url: user.avatar_url || '',
+      can_manage_organizations: user.can_manage_organizations || false
     });
     setDialogOpen(true);
   };
@@ -72,14 +78,17 @@ export const useUserForm = (
     setLoading(true);
     try {
       if (editingUser) {
+        const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
         const { error } = await supabase
           .from('profiles')
           .update({
             nome: formData.nome,
             telefone: formData.telefone,
-            role: formData.role,
+            role: roleEnum,
             organizacao_id: formData.organizacao_id,
-            is_active: formData.is_active
+            is_active: formData.is_active,
+            avatar_url: formData.avatar_url,
+            can_manage_organizations: formData.can_manage_organizations
           })
           .eq('id', editingUser.id);
 
@@ -108,7 +117,9 @@ export const useUserForm = (
           telefone: formData.telefone,
           role: roleEnum,
           organizacao_id: formData.organizacao_id,
-          is_active: formData.is_active
+          is_active: formData.is_active,
+          avatar_url: formData.avatar_url,
+          can_manage_organizations: formData.can_manage_organizations
         };
         const { error: profileError } = await supabase
           .from('profiles')

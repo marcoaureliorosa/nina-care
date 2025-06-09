@@ -1,4 +1,3 @@
-
 import { MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ConversationCard from "./ConversationCard";
@@ -8,9 +7,12 @@ interface ConversationsListProps {
   isLoading: boolean;
   searchTerm: string;
   statusFilter: string;
+  onSelectConversation?: (id: string) => void;
+  selectedConversationId?: string | null;
+  compact?: boolean;
 }
 
-const ConversationsList = ({ conversations, isLoading, searchTerm, statusFilter }: ConversationsListProps) => {
+const ConversationsList = ({ conversations, isLoading, searchTerm, statusFilter, onSelectConversation, selectedConversationId, compact }: ConversationsListProps) => {
   if (isLoading) {
     return (
       <Card>
@@ -48,7 +50,13 @@ const ConversationsList = ({ conversations, isLoading, searchTerm, statusFilter 
         <div className="space-y-3">
           {conversations && conversations.length > 0 ? (
             conversations.map((conversation) => (
-              <ConversationCard key={conversation.id} conversation={conversation} />
+              <ConversationCard 
+                key={conversation.id} 
+                conversation={conversation} 
+                onClick={() => onSelectConversation && onSelectConversation(conversation.id)}
+                selected={selectedConversationId === conversation.id}
+                compact={compact}
+              />
             ))
           ) : (
             <div className="text-center py-12">

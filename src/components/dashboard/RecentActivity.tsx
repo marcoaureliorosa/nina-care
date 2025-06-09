@@ -1,7 +1,9 @@
+// Certifique-se de instalar o framer-motion: npm install framer-motion
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useRef, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
 
 interface ActivityItem {
   time: string
@@ -71,9 +73,9 @@ const RecentActivity = () => {
   const getStatusColor = (status: ActivityItem['status']) => {
     switch (status) {
       case 'em_acompanhamento':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200'
       case 'humano_solicitado':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-100 text-red-700 border-red-200'
       case 'aguardando_ativacao':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'finalizada':
@@ -100,20 +102,27 @@ const RecentActivity = () => {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="rounded-2xl border-0 bg-white/90 dark:bg-zinc-900/90 shadow-lg animate-pulse">
         <CardHeader>
           <CardTitle>Atividade Recente</CardTitle>
           <CardDescription>Carregando atividades...</CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-20 bg-zinc-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-0 bg-white/90 dark:bg-zinc-900/90 shadow-lg">
       <CardHeader>
-        <CardTitle>Atividade Recente</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-zinc-800 dark:text-white">Atividade Recente</CardTitle>
+        <CardDescription className="text-zinc-500 dark:text-zinc-300">
           Últimas interações dos agentes IA com pacientes
         </CardDescription>
       </CardHeader>
@@ -151,33 +160,43 @@ const RecentActivity = () => {
                   action = 'Atividade de acompanhamento'
               }
               return (
-                <div key={conversa.id || index} className="p-4 rounded-lg border hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <h4 className="font-medium text-gray-900">{conversa.pacientes?.nome || 'Paciente não identificado'}</h4>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(conversa.status)}`}>
+                <motion.div
+                  key={conversa.id || index}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 + index * 0.07 }}
+                  className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-ninacare-primary text-base md:text-lg">
+                        {conversa.pacientes?.nome || 'Paciente não identificado'}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(conversa.status)}`}>
                         {getStatusLabel(conversa.status)}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400">{timeString}</span>
+                    <span className="text-xs text-zinc-400 font-mono">{timeString}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{action}</p>
-                  <div className="bg-blue-50 p-3 rounded-md border-l-4 border-blue-200">
-                    <p className="text-sm text-gray-700 leading-relaxed italic">
+                  {action && (
+                    <p className="text-sm text-zinc-700 dark:text-zinc-200 font-medium mb-1">{action}</p>
+                  )}
+                  <div className="bg-ninacare-gradient/10 border-l-4 border-ninacare-primary p-3 rounded-md">
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed italic">
                       {conversa.resumo_conversa || 'Sem resumo disponível'}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               )
             })
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500">Nenhuma atividade recente encontrada</p>
+              <p className="text-zinc-500">Nenhuma atividade recente encontrada</p>
             </div>
           )}
           <div ref={loadMoreRef} />
           {isFetchingNextPage && (
-            <div className="text-center py-4 text-gray-400">Carregando mais...</div>
+            <div className="text-center py-4 text-zinc-400 animate-pulse">Carregando mais...</div>
           )}
         </div>
       </CardContent>

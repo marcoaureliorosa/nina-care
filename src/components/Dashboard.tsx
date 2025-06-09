@@ -25,24 +25,27 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader userProfile={metrics.userProfile} />
-
-      <MainMetricsGrid
-        procedures={metrics.procedures}
-        totalPatients={metrics.totalPatients}
-        patientsPercentage={metrics.patientsPercentage}
-        activePatients={metrics.activePatients}
-        ninaActivation={metrics.ninaActivation}
-      />
-
-      <EngagementMetrics
-        responseRate24h={metrics.responseRate24h}
-        spontaneousContacts={metrics.spontaneousContacts}
-        humanActivations={metrics.humanActivations}
-        satisfactionClicks={metrics.satisfactionClicks}
-      />
-
-      <RecentActivity />
+      <div className="w-full flex flex-col items-center max-w-7xl mx-auto">
+        <div className="w-full pt-8 pb-4">
+          <DashboardHeader userProfile={metrics.userProfile} />
+        </div>
+        <div className="w-full">
+          <MainMetricsGrid
+            procedures={metrics.procedures}
+            totalPatients={metrics.totalPatients}
+            patientsPercentage={metrics.patientsPercentage}
+            activePatients={metrics.activePatients}
+            ninaActivation={metrics.ninaActivation}
+          />
+          <EngagementMetrics
+            responseRate24h={metrics.responseRate24h}
+            spontaneousContacts={metrics.spontaneousContacts}
+            humanActivations={metrics.humanActivations}
+            satisfactionClicks={metrics.satisfactionClicks}
+          />
+          <RecentActivity />
+        </div>
+      </div>
     </div>
   );
 };
