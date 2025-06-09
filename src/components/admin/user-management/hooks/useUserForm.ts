@@ -169,7 +169,6 @@ export const useUserForm = (
           email: formData.email,
           password: generateTemporaryPassword(),
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
             data: {
               name: formData.nome, // Usar 'name' para o trigger pegar corretamente
               nome: formData.nome,
