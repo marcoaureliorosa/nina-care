@@ -164,16 +164,14 @@ export const useUserForm = (
           description: "O usuário foi atualizado com sucesso.",
         });
       } else {
-        // Criar novo usuário com magic link
-        const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
-        
-        // Usar o método correto para convidar usuário
+        // Criar novo usuário - o trigger handle_new_user criará o profile automaticamente
         const { data, error: inviteError } = await supabase.auth.signUp({
           email: formData.email,
-          password: generateTemporaryPassword(), // Senha temporária que será substituída
+          password: generateTemporaryPassword(),
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
             data: {
+              name: formData.nome, // Usar 'name' para o trigger pegar corretamente
               nome: formData.nome,
               role: formData.role,
               organizacao_id: formData.organizacao_id,
@@ -189,27 +187,27 @@ export const useUserForm = (
         const userId = data.user?.id;
         if (!userId) throw new Error('Erro ao criar usuário.');
 
-        // Inserir perfil na tabela 'profiles'
-        const profileInsert: Database["public"]["Tables"]["profiles"]["Insert"] = {
-          id: userId,
-          nome: formData.nome,
-          email: formData.email,
-          telefone: formData.telefone,
-          role: roleEnum,
-          organizacao_id: formData.organizacao_id,
-          is_active: formData.is_active,
-          avatar_url: formData.avatar_url,
-          can_manage_organizations: formData.can_manage_organizations
-        };
+        // Aguardar um pouco para o trigger ser executado
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const { error: profileError } = await supabase
+        // Atualizar o profile criado pelo trigger com os dados completos
+        const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
+        const { error: updateError } = await supabase
           .from('profiles')
-          .insert(profileInsert);
+          .update({
+            nome: formData.nome,
+            telefone: formData.telefone,
+            role: roleEnum,
+            organizacao_id: formData.organizacao_id,
+            is_active: formData.is_active,
+            avatar_url: formData.avatar_url,
+            can_manage_organizations: formData.can_manage_organizations
+          })
+          .eq('id', userId);
 
-        if (profileError) {
-          // Se falhar a criação do perfil, tentar remover o usuário criado
-          console.error('Erro ao criar perfil:', profileError);
-          throw profileError;
+        if (updateError) {
+          console.error('Erro ao atualizar perfil:', updateError);
+          // Não falhar completamente, pois o usuário foi criado
         }
 
         toast({
