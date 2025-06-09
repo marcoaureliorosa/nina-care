@@ -1,6 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { whatsappApiFetch, checkWhatsAppConfig } from "@/lib/whatsapp-api";
+import { 
+  generateWhatsAppQR, 
+  checkWhatsAppStatus, 
+  sendWhatsAppMessage,
+  disconnectWhatsApp,
+  checkWhatsAppConfig,
+  WhatsAppApiResponse,
+  WhatsAppConnectionStatus
+} from "@/lib/whatsapp-api";
 
 interface WhatsAppStatus {
   status: string | number | boolean;
@@ -31,21 +39,19 @@ export const useWhatsApp = () => {
   const useInstanceStatus = () => {
     return useQuery({
       queryKey: ['whatsapp-status', user?.id],
-      queryFn: async (): Promise<WhatsAppStatus> => {
+      queryFn: async (): Promise<WhatsAppConnectionStatus> => {
         try {
-          const data = await whatsappApiFetch('/instance/status');
+          const data = await checkWhatsAppStatus();
           return data;
         } catch (error) {
           console.error('Erro ao buscar status do WhatsApp:', error);
           return {
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Erro desconhecido'
+            connected: false,
+            lastCheck: new Date(),
           };
         }
       },
       enabled: !!user?.id,
-      // removendo o refetch automático para dar controle ao usuário
-      // refetchInterval: 10000, 
       retry: 2
     });
   };
@@ -54,13 +60,14 @@ export const useWhatsApp = () => {
   const useQRCode = () => {
     return useQuery({
       queryKey: ['whatsapp-qr', user?.id],
-      queryFn: async (): Promise<WhatsAppQRCode> => {
+      queryFn: async (): Promise<WhatsAppApiResponse> => {
         try {
-          const data = await whatsappApiFetch('/instance/qr');
+          const data = await generateWhatsAppQR();
           return data;
         } catch (error) {
           console.error('Erro ao buscar QR Code do WhatsApp:', error);
           return {
+            success: false,
             error: error instanceof Error ? error.message : 'Erro desconhecido'
           };
         }
@@ -77,9 +84,9 @@ export const useWhatsApp = () => {
 
   // Mutation para verificar status manualmente
   const checkStatus = useMutation({
-    mutationFn: async (): Promise<WhatsAppStatus> => {
+    mutationFn: async (): Promise<WhatsAppConnectionStatus> => {
       try {
-        const data = await whatsappApiFetch('/instance/status');
+        const data = await checkWhatsAppStatus();
         return data;
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Erro ao verificar status');
@@ -91,10 +98,46 @@ export const useWhatsApp = () => {
     }
   });
 
+  // Mutation para enviar mensagem
+  const sendMessage = useMutation({
+    mutationFn: async ({ to, message }: { to: string; message: string }): Promise<WhatsAppApiResponse> => {
+      try {
+        const data = await sendWhatsAppMessage(to, message);
+        return data;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
+      }
+    }
+  });
+
+  // Mutation para desconectar
+  const disconnect = useMutation({
+    mutationFn: async (): Promise<WhatsAppApiResponse> => {
+      try {
+        const data = await disconnectWhatsApp();
+        return data;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Erro ao desconectar');
+      }
+    },
+    onSuccess: () => {
+      // Invalidar cache do status após desconectar
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
+    }
+  });
+
+  // Verificar configuração
+  const getConfig = () => {
+    return checkWhatsAppConfig();
+  };
+
   return {
     useInstanceStatus,
     useQRCode,
     refreshQRCode,
-    checkStatus
+    checkStatus,
+    sendMessage,
+    disconnect,
+    getConfig
   };
 }; 

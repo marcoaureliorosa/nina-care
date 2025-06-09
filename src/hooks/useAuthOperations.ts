@@ -1,4 +1,3 @@
-
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +38,41 @@ export const useAuthOperations = () => {
       toast({
         title: "Erro no login",
         description: error.message || "Credenciais inválidas",
+        variant: "destructive",
+      });
+      return { error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      // Clean up existing state first
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+        console.log('Global signout failed, continuing:', err);
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}`,
+        },
+      });
+
+      if (error) throw error;
+
+      // O toast de sucesso será mostrado após o redirecionamento
+      return { error: null };
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      toast({
+        title: "Erro no login com Google",
+        description: error.message || "Não foi possível realizar o login com Google",
         variant: "destructive",
       });
       return { error };
@@ -118,6 +152,7 @@ export const useAuthOperations = () => {
 
   return {
     signIn,
+    signInWithGoogle,
     signOut,
     updateProfile,
   };

@@ -1,71 +1,47 @@
-# Ninacare - Central de Monitoramento IA
+# Nina Care - Central de Monitoramento
 
-Plataforma Ninacare para acompanhamento de agentes IA em cuidados perioperatórios.
+Sistema inteligente de monitoramento de pacientes com interface moderna e integrações avançadas.
 
-## Sobre o Projeto
+## 🚀 Tecnologias
 
-Sistema web desenvolvido para monitoramento e gestão de agentes de inteligência artificial especializados em cuidados perioperatórios. A plataforma oferece funcionalidades completas de gerenciamento de usuários, organizações, pacientes e conversas.
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI**: Tailwind CSS + shadcn/ui components
+- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **Autenticação**: Supabase Auth (Email/Senha + Google OAuth)
+- **Estado**: React Context + React Query
+- **Roteamento**: React Router v6
+- **Gráficos**: Recharts
+- **Icons**: Lucide React
 
-## Tecnologias Utilizadas
-
-Este projeto foi construído com:
-
-- **Vite** - Build tool e servidor de desenvolvimento
-- **TypeScript** - Linguagem de programação
-- **React** - Framework frontend
-- **shadcn/ui** - Componentes de interface
-- **Tailwind CSS** - Framework de estilização
-- **Supabase** - Backend as a Service (banco de dados, autenticação, storage)
-- **React Router** - Roteamento
-- **React Hook Form** - Gerenciamento de formulários
-- **Framer Motion** - Animações
-
-## Funcionalidades
-
-- 🔐 **Autenticação e Autorização** - Sistema completo de login/logout com diferentes níveis de acesso
-- 👥 **Gerenciamento de Usuários** - CRUD completo com roles e permissões
-- 🏢 **Gestão de Organizações** - Múltiplas organizações com isolamento de dados
-- 💬 **Sistema de Conversas** - Interface para acompanhar interações com agentes IA
-- 👤 **Perfis de Pacientes** - Cadastro e gerenciamento de informações dos pacientes
-- 📊 **Dashboard** - Visualização de métricas e indicadores
-- 🔧 **Configurações** - Painel administrativo com configurações do sistema
-
-## Como Executar o Projeto
+## 🛠️ Configuração do Projeto
 
 ### Pré-requisitos
 
-- Node.js (versão 16 ou superior)
+- Node.js 18+ 
 - npm ou yarn
-- Conta no Supabase (para backend)
 
 ### Instalação
 
 ```bash
-# 1. Clone o repositório
-git clone <URL_DO_REPOSITORIO>
-
-# 2. Entre no diretório do projeto
+# Clone o repositório
+git clone [url-do-repositorio]
 cd nina-care
 
-# 3. Instale as dependências
+# Instale as dependências
 npm install
 
-# 4. Configure as variáveis de ambiente
-cp .env.example .env.local
-# Edite o arquivo .env.local com suas credenciais do Supabase
-
-# 5. Execute o projeto em desenvolvimento
+# Execute o projeto
 npm run dev
 ```
 
-### Variáveis de Ambiente
+### Configuração de Variáveis (Lovable)
 
-Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
+**Importante**: O Lovable não usa arquivos `.env`. As configurações são gerenciadas via:
 
-```env
-VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
-```
+1. **URLs públicas**: Definidas diretamente no código
+2. **Tokens secretos**: Configurados nas Supabase Secrets
+
+Para configurar o WhatsApp, consulte: [LOVABLE_ENVIRONMENT_CONFIG.md](./LOVABLE_ENVIRONMENT_CONFIG.md)
 
 ## Scripts Disponíveis
 
@@ -85,11 +61,61 @@ src/
 ├── contexts/           # Contextos React (Auth, etc.)
 ├── hooks/              # Custom hooks
 ├── integrations/       # Integrações externas (Supabase)
+├── lib/                # Bibliotecas e utilitários
 ├── pages/              # Páginas da aplicação
 ├── types/              # Definições de tipos TypeScript
 ├── utils/              # Funções utilitárias
 └── main.tsx           # Ponto de entrada da aplicação
+
+supabase/
+├── functions/          # Edge Functions (serverless)
+│   ├── send-whatsapp-message/
+│   ├── whatsapp-qr/
+│   ├── whatsapp-status/
+│   └── whatsapp-disconnect/
+└── config.toml         # Configuração do Supabase
 ```
+
+## 🔐 Autenticação
+
+O sistema suporta:
+- ✅ Login com email/senha
+- ✅ Login com Google OAuth  
+- ✅ Recuperação de senha
+- ✅ Gerenciamento de perfis
+
+## 📱 Funcionalidades
+
+### Dashboard
+- Métricas em tempo real
+- Gráficos interativos
+- Monitoramento de pacientes
+- Alertas e notificações
+
+### WhatsApp Integration
+- Envio de mensagens
+- QR Code para conexão
+- Status de conexão
+- Gerenciamento via Edge Functions
+
+### Administração
+- Gerenciamento de usuários
+- Configurações do sistema
+- Logs e auditoria
+
+## 🔧 Configuração do WhatsApp
+
+1. Configure o token nas Supabase Secrets
+2. Deploy das Edge Functions
+3. Teste a conexão via QR Code
+
+Ver documentação completa: [LOVABLE_ENVIRONMENT_CONFIG.md](./LOVABLE_ENVIRONMENT_CONFIG.md)
+
+## 📚 Documentação Adicional
+
+- [Configuração WhatsApp](./WHATSAPP_INTEGRATION.md)
+- [Setup Google OAuth](./GOOGLE_OAUTH_SETUP.md)
+- [Configuração Lovable](./LOVABLE_ENVIRONMENT_CONFIG.md)
 
 ## Licença
 

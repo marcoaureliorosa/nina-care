@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const { signIn, signOut: authSignOut, updateProfile: authUpdateProfile } = useAuthOperations();
+  const { signIn, signInWithGoogle, signOut: authSignOut, updateProfile: authUpdateProfile } = useAuthOperations();
   const { profile, setProfile, updateProfileData } = useProfileData(user?.id);
 
   useEffect(() => {
@@ -111,12 +110,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     profile,
     session,
     loading,
     signIn,
+    signInWithGoogle,
     signOut,
     updateProfile,
   };

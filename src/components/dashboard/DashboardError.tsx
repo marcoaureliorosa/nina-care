@@ -1,4 +1,4 @@
-
+import React, { useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle } from "lucide-react"
@@ -10,6 +10,13 @@ interface DashboardErrorProps {
 
 const DashboardError = ({ error }: DashboardErrorProps) => {
   const { user } = useAuth();
+
+  // Log de erro no useEffect para evitar problemas no JSX
+  useEffect(() => {
+    if (error) {
+      console.error('Dashboard error:', error);
+    }
+  }, [error]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -55,9 +62,6 @@ const DashboardError = ({ error }: DashboardErrorProps) => {
           </div>
         </AlertDescription>
       </Alert>
-      
-      {/* Log de erro apenas no console para debug */}
-      {error && console.error('Dashboard error:', error)}
     </div>
   );
 };

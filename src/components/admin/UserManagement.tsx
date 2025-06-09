@@ -24,6 +24,23 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
     handleDialogClose
   } = useUserForm(profile, fetchUsers, setLoading, toast);
 
+  // Função para deletar usuário e fechar modal
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+      return;
+    }
+    
+    try {
+      await deleteUser(id);
+      // Se chegou até aqui, a exclusão foi bem-sucedida
+      setDialogOpen(false);
+      handleDialogClose();
+    } catch (error) {
+      // Erro já tratado no deleteUser
+      console.error('Erro na exclusão:', error);
+    }
+  };
+
   // Filtrar usuários e organizações se for só da organização atual
   const filteredUsers = onlyCurrentOrganization
     ? users.filter(u => u.organizacao_id === profile?.organizacao_id)
@@ -44,7 +61,7 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
         loading={loading}
         onSubmit={handleSubmit}
         onDialogClose={handleDialogClose}
-        onDelete={deleteUser}
+        onDelete={handleDeleteUser}
         hideOrganizationSelect={onlyCurrentOrganization}
       />
 

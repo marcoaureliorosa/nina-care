@@ -238,11 +238,7 @@ const UserFormDialog = ({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (confirm('Tem certeza que deseja excluir este usuário?')) {
-                        onDelete(editingUser.id);
-                      }
-                    }}
+                    onClick={() => onDelete(editingUser.id)}
                     className="text-xs text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="w-3 h-3 mr-1" />

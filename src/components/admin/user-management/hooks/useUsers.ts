@@ -52,8 +52,6 @@ export const useUsers = () => {
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-
     setLoading(true);
     try {
       const { error } = await supabase
@@ -68,7 +66,8 @@ export const useUsers = () => {
         description: "O usuário foi excluído com sucesso.",
       });
       
-      fetchUsers();
+      await fetchUsers(); // Await para garantir que a lista seja atualizada
+      return true; // Indicar sucesso
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
@@ -76,6 +75,7 @@ export const useUsers = () => {
         description: "Não foi possível excluir o usuário.",
         variant: "destructive",
       });
+      throw error; // Re-throw para ser capturado no handleDeleteUser
     } finally {
       setLoading(false);
     }
