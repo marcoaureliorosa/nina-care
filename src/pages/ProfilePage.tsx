@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input, InputMaskPhone } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +41,10 @@ const ProfilePage = () => {
   }, [loading, user, profile]);
 
   const handleSave = async () => {
-    const { error } = await updateProfile(formData);
+    const { error } = await updateProfile({
+      ...formData,
+      telefone: formData.telefone.replace(/\D/g, '')
+    });
     if (!error) {
       setIsEditing(false);
     }
@@ -298,10 +300,10 @@ const ProfilePage = () => {
               <div className="space-y-2">
                 <Label htmlFor="telefone">Telefone</Label>
                 {isEditing ? (
-                  <Input
+                  <InputMaskPhone
                     id="telefone"
                     value={formData.telefone}
-                    onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
                     placeholder="(11) 99999-9999"
                   />
                 ) : (

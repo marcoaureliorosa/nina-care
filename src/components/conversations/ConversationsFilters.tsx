@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,13 +10,17 @@ interface ConversationsFiltersProps {
   setSearchTerm: (term: string) => void;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
+  extraFilter: string;
+  setExtraFilter: (filter: string) => void;
 }
 
 const ConversationsFilters = ({ 
   searchTerm, 
   setSearchTerm, 
   statusFilter, 
-  setStatusFilter 
+  setStatusFilter,
+  extraFilter,
+  setExtraFilter
 }: ConversationsFiltersProps) => {
   const statusOptions = [
     { value: "all", label: "Todos os Status", count: 0 },
@@ -27,12 +30,20 @@ const ConversationsFilters = ({
     { value: "finalizada", label: "Finalizada", count: 0 }
   ];
 
+  const extraOptions = [
+    { value: "all", label: "Todas" },
+    { value: "priority", label: "Apenas prioritárias" },
+    { value: "read", label: "Apenas lidas" },
+    { value: "unread", label: "Apenas não lidas" },
+  ];
+
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
+    setExtraFilter("all");
   };
 
-  const hasActiveFilters = searchTerm !== "" || statusFilter !== "all";
+  const hasActiveFilters = searchTerm !== "" || statusFilter !== "all" || extraFilter !== "all";
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -76,6 +87,27 @@ const ConversationsFilters = ({
             </Select>
           </div>
 
+          {/* Filtro Extra */}
+          <div className="lg:w-64">
+            <label htmlFor="extra-filter" className="block text-sm font-medium text-gray-700 mb-2">
+              Outros Filtros
+            </label>
+            <Select value={extraFilter} onValueChange={setExtraFilter}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Selecione o filtro" />
+              </SelectTrigger>
+              <SelectContent>
+                {extraOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{option.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Botão de Limpar Filtros */}
           {hasActiveFilters && (
             <div className="flex items-end">
@@ -105,6 +137,12 @@ const ConversationsFilters = ({
               <Badge variant="secondary" className="gap-1">
                 <Filter className="w-3 h-3" />
                 {statusOptions.find(opt => opt.value === statusFilter)?.label}
+              </Badge>
+            )}
+            {extraFilter !== "all" && (
+              <Badge variant="secondary" className="gap-1">
+                <Filter className="w-3 h-3" />
+                {extraOptions.find(opt => opt.value === extraFilter)?.label}
               </Badge>
             )}
           </div>

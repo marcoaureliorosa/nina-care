@@ -1,4 +1,3 @@
-
 import { Calendar, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -15,9 +14,10 @@ interface CalendarGridProps {
   view: 'month' | 'week' | 'day';
   currentDate: Date;
   appointments: Appointment[];
+  onAppointmentClick?: (appointment: Appointment) => void;
 }
 
-const CalendarGrid = ({ view, currentDate, appointments }: CalendarGridProps) => {
+const CalendarGrid = ({ view, currentDate, appointments, onAppointmentClick }: CalendarGridProps) => {
   const getMonthDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -105,6 +105,7 @@ const CalendarGrid = ({ view, currentDate, appointments }: CalendarGridProps) =>
                           appointment.status === 'confirmado' ? 'bg-green-500' : 'bg-ninacare-primary'
                         }`}
                         title={`${appointment.time} - ${appointment.patient}`}
+                        onClick={() => onAppointmentClick && onAppointmentClick(appointment)}
                       >
                         {appointment.time} {appointment.patient}
                       </div>

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input, InputMaskPhone } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -31,6 +30,7 @@ interface UserFormDialogProps {
   loading: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onDialogClose: () => void;
+  hideOrganizationSelect?: boolean;
 }
 
 const UserFormDialog = ({
@@ -43,6 +43,7 @@ const UserFormDialog = ({
   loading,
   onSubmit,
   onDialogClose,
+  hideOrganizationSelect
 }: UserFormDialogProps) => {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -63,6 +64,7 @@ const UserFormDialog = ({
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
+            <input type="hidden" name="is_active" value="true" />
             <Label htmlFor="nome">Nome *</Label>
             <Input
               id="nome"
@@ -86,12 +88,28 @@ const UserFormDialog = ({
             />
           </div>
 
+          {/* Campo de senha apenas para novo usuário */}
+          {!editingUser && (
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Digite uma senha segura"
+                required
+                minLength={6}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="telefone">Telefone</Label>
-            <Input
+            <InputMaskPhone
               id="telefone"
               value={formData.telefone}
-              onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '') }))}
               placeholder="(11) 99999-9999"
             />
           </div>
@@ -115,24 +133,26 @@ const UserFormDialog = ({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="organizacao">Organização</Label>
-            <Select
-              value={formData.organizacao_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, organizacao_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a organização" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    {org.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!hideOrganizationSelect && (
+            <div className="space-y-2">
+              <Label htmlFor="organizacao">Organização</Label>
+              <Select
+                value={formData.organizacao_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, organizacao_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a organização" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button

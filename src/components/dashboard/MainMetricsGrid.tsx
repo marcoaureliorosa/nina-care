@@ -1,10 +1,11 @@
-
 import { Activity, Users, UserCheck, MessageCircle } from "lucide-react"
 import MetricCard from "./MetricCard"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface MainMetricsGridProps {
   procedures: number;
   totalPatients: number;
+  patientsPercentage: number;
   activePatients: { count: number; percentage: number };
   ninaActivation: { count: number; percentage: number };
 }
@@ -12,6 +13,7 @@ interface MainMetricsGridProps {
 const MainMetricsGrid = ({ 
   procedures, 
   totalPatients, 
+  patientsPercentage,
   activePatients, 
   ninaActivation 
 }: MainMetricsGridProps) => {
@@ -24,29 +26,68 @@ const MainMetricsGrid = ({
         description="Total de procedimentos monitorados"
       />
       
-      <MetricCard
-        title="Pacientes Cadastrados"
-        value={totalPatients.toLocaleString()}
-        percentage={100}
-        icon={Users}
-        description="Base total de pacientes"
-      />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <MetricCard
+                title="Pacientes Cadastrados"
+                value={totalPatients.toLocaleString()}
+                percentage={patientsPercentage}
+                icon={Users}
+                description="Base total de pacientes"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <span>
+              O percentual representa a razão entre pacientes cadastrados e procedimentos realizados, limitado a 100%.
+            </span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       
-      <MetricCard
-        title="Pacientes Ativos"
-        value={activePatients.count.toLocaleString()}
-        percentage={activePatients.percentage}
-        icon={UserCheck}
-        description="Pacientes com atividade recente"
-      />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <MetricCard
+                title="Pacientes Ativos"
+                value={activePatients.count.toLocaleString()}
+                percentage={activePatients.percentage}
+                icon={UserCheck}
+                description="Pacientes com atividade recente"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <span>
+              Pacientes que enviaram pelo menos uma mensagem nos últimos 30 dias.
+            </span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       
-      <MetricCard
-        title="Ativação da Nina"
-        value={ninaActivation.count.toLocaleString()}
-        percentage={ninaActivation.percentage}
-        icon={MessageCircle}
-        description="Pacientes que ativaram o agente IA"
-      />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <MetricCard
+                title="Ativação da Nina"
+                value={ninaActivation.count.toLocaleString()}
+                percentage={ninaActivation.percentage}
+                icon={MessageCircle}
+                description="Pacientes que ativaram o agente IA"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <span>
+              Pacientes que já enviaram pelo menos uma mensagem para a Nina (ou seja, possuem conversa).
+            </span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

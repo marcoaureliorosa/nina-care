@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
@@ -13,6 +12,7 @@ export interface UserProfile {
   organizacoes?: {
     nome: string;
     cnpj?: string;
+    procedures_performed?: string | null;
   };
 }
 

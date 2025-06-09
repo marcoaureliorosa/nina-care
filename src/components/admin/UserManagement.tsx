@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserFormDialog from './user-management/UserFormDialog';
@@ -6,7 +5,11 @@ import UserTable from './user-management/UserTable';
 import { useUsers } from './user-management/hooks/useUsers';
 import { useUserForm } from './user-management/hooks/useUserForm';
 
-const UserManagement = () => {
+interface UserManagementProps {
+  onlyCurrentOrganization?: boolean;
+}
+
+const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
   const { profile } = useAuth();
   const { users, organizations, loading, setLoading, fetchUsers, deleteUser, toast } = useUsers();
   
@@ -21,6 +24,14 @@ const UserManagement = () => {
     handleDialogClose
   } = useUserForm(profile, fetchUsers, setLoading, toast);
 
+  // Filtrar usuários e organizações se for só da organização atual
+  const filteredUsers = onlyCurrentOrganization
+    ? users.filter(u => u.organizacao_id === profile?.organizacao_id)
+    : users;
+  const filteredOrganizations = onlyCurrentOrganization
+    ? organizations.filter(o => o.id === profile?.organizacao_id)
+    : organizations;
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -31,15 +42,16 @@ const UserManagement = () => {
           editingUser={editingUser}
           formData={formData}
           setFormData={setFormData}
-          organizations={organizations}
+          organizations={filteredOrganizations}
           loading={loading}
           onSubmit={handleSubmit}
           onDialogClose={handleDialogClose}
+          hideOrganizationSelect={onlyCurrentOrganization}
         />
       </div>
 
       <UserTable
-        users={users}
+        users={filteredUsers}
         currentUserId={profile?.id}
         onEdit={handleEdit}
         onDelete={deleteUser}

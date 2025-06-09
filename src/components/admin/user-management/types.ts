@@ -1,3 +1,4 @@
+import type { Database } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
@@ -22,7 +23,8 @@ export interface UserFormData {
   nome: string;
   email: string;
   telefone: string;
-  role: 'admin' | 'doctor' | 'nurse' | 'secretary' | 'recepcionista';
+  role: string;
   organizacao_id: string;
   is_active: boolean;
+  password?: string;
 }

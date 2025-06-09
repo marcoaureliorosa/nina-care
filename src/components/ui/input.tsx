@@ -1,4 +1,5 @@
-import * as React from "react"
+import React from "react"
+import InputMask from "react-input-mask"
 
 import { cn } from "@/lib/utils"
 
@@ -18,5 +19,19 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   }
 )
 Input.displayName = "Input"
+
+export const InputMaskPhone = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<"input">>(
+  ({ ...props }, ref) => (
+    <InputMask
+      mask="(99) 99999-9999"
+      maskChar={null}
+      alwaysShowMask={false}
+      {...props}
+    >
+      {(inputProps: any) => <input ref={ref} {...inputProps} className={props.className} />}
+    </InputMask>
+  )
+)
+InputMaskPhone.displayName = "InputMaskPhone"
 
 export { Input }

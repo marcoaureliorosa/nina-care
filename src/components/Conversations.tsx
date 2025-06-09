@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +8,11 @@ import ConversationsList from "./conversations/ConversationsList";
 const Conversations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [extraFilter, setExtraFilter] = useState<string>("all");
 
   // Buscar conversas do Supabase
   const { data: conversations, isLoading } = useQuery({
-    queryKey: ['conversations', searchTerm, statusFilter],
+    queryKey: ['conversations', searchTerm, statusFilter, extraFilter],
     queryFn: async () => {
       console.log('Fetching conversations...')
       
@@ -36,6 +36,15 @@ const Conversations = () => {
         query = query.eq('status', statusFilter)
       }
 
+      // Filtro extra
+      if (extraFilter === "priority") {
+        query = query.eq('is_priority', true)
+      } else if (extraFilter === "read") {
+        query = query.eq('is_read', true)
+      } else if (extraFilter === "unread") {
+        query = query.eq('is_read', false)
+      }
+
       const { data, error } = await query
 
       if (error) {
@@ -56,6 +65,8 @@ const Conversations = () => {
         setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        extraFilter={extraFilter}
+        setExtraFilter={setExtraFilter}
       />
       <ConversationsList 
         conversations={conversations}

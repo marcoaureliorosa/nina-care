@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input, InputMaskPhone } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -32,6 +31,7 @@ interface Organization {
   telefone?: string;
   endereco?: string;
   created_at: string;
+  procedures_performed?: string | null;
 }
 
 const OrganizationManagement = () => {
@@ -44,7 +44,8 @@ const OrganizationManagement = () => {
     cnpj: '',
     email: '',
     telefone: '',
-    endereco: ''
+    endereco: '',
+    procedures_performed: ''
   });
   const { toast } = useToast();
 
@@ -135,7 +136,8 @@ const OrganizationManagement = () => {
       cnpj: org.cnpj || '',
       email: org.email || '',
       telefone: org.telefone || '',
-      endereco: org.endereco || ''
+      endereco: org.endereco || '',
+      procedures_performed: org.procedures_performed || ''
     });
     setDialogOpen(true);
   };
@@ -176,7 +178,8 @@ const OrganizationManagement = () => {
       cnpj: '',
       email: '',
       telefone: '',
-      endereco: ''
+      endereco: '',
+      procedures_performed: ''
     });
     setEditingOrg(null);
   };
@@ -209,13 +212,7 @@ const OrganizationManagement = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome *</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Nome da organização"
-                  required
-                />
+                <Input id="nome" name="nome" value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} placeholder="Nome da organização" required />
               </div>
 
               <div className="space-y-2">
@@ -241,10 +238,10 @@ const OrganizationManagement = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="telefone">Telefone</Label>
-                <Input
+                <InputMaskPhone
                   id="telefone"
                   value={formData.telefone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '') }))}
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -257,6 +254,19 @@ const OrganizationManagement = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco: e.target.value }))}
                   placeholder="Endereço completo"
                   rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="procedures_performed">Procedimentos Realizados</Label>
+                <Input
+                  id="procedures_performed"
+                  name="procedures_performed"
+                  type="number"
+                  min="0"
+                  value={formData.procedures_performed}
+                  onChange={e => setFormData(prev => ({ ...prev, procedures_performed: e.target.value }))}
+                  placeholder="Quantidade de procedimentos realizados"
                 />
               </div>
 
@@ -286,6 +296,7 @@ const OrganizationManagement = () => {
               <TableHead>CNPJ</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Telefone</TableHead>
+              <TableHead>Procedimentos Realizados</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -304,6 +315,7 @@ const OrganizationManagement = () => {
                   <TableCell>{org.cnpj || '-'}</TableCell>
                   <TableCell>{org.email || '-'}</TableCell>
                   <TableCell>{org.telefone || '-'}</TableCell>
+                  <TableCell>{org.procedures_performed || '-'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button

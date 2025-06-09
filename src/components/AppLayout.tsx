@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -13,6 +12,7 @@ import ConfiguracoesPage from "../pages/ConfiguracoesPage";
 import ProfilePage from "../pages/ProfilePage";
 import AdminPage from "../pages/AdminPage";
 import NotFound from "../pages/NotFound";
+import ConversationDetail from "./conversations/ConversationDetail";
 
 const AppLayout = () => {
   return (
@@ -31,6 +31,7 @@ const AppLayout = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/conversas" element={<ConversasPage />} />
+                <Route path="/conversas/:id" element={<ConversationDetail />} />
                 <Route path="/pacientes" element={<PacientesPage />} />
                 <Route path="/agenda" element={<AgendaPage />} />
                 <Route path="/configuracoes" element={<ConfiguracoesPage />} />

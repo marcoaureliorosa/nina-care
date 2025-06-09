@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext"
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics"
 import DashboardHeader from "./dashboard/DashboardHeader"
@@ -31,6 +30,7 @@ const Dashboard = () => {
       <MainMetricsGrid
         procedures={metrics.procedures}
         totalPatients={metrics.totalPatients}
+        patientsPercentage={metrics.patientsPercentage}
         activePatients={metrics.activePatients}
         ninaActivation={metrics.ninaActivation}
       />

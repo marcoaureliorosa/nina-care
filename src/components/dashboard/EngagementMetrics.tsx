@@ -1,8 +1,8 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Clock, Phone, ThumbsUp } from "lucide-react"
 import MetricCard from "./MetricCard"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface EngagementMetricsProps {
   responseRate24h: { count: number; percentage: number }
@@ -33,9 +33,20 @@ const EngagementMetrics = ({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Resposta em 24h</span>
-              <span className="text-sm text-muted-foreground">
-                {responseRate24h.count} pacientes ({responseRate24h.percentage}%)
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm text-muted-foreground cursor-help">
+                      {responseRate24h.count} pacientes ({responseRate24h.percentage}%)
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <span>
+                      Quantidade de pacientes que responderam um follow-up enviado pelo agente em até 24 horas.
+                    </span>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <Progress value={responseRate24h.percentage} className="h-3" />
           </div>
@@ -43,9 +54,20 @@ const EngagementMetrics = ({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Contatos Espontâneos</span>
-              <span className="text-sm text-muted-foreground">
-                {spontaneousContacts.count} pacientes ({spontaneousContacts.percentage}%)
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm text-muted-foreground cursor-help">
+                      {spontaneousContacts.count} pacientes ({spontaneousContacts.percentage}%)
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <span>
+                      Mensagens enviadas pelo paciente quando o último follow-up recebido foi há mais de 24h ou não houve follow-up anterior.
+                    </span>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <Progress value={spontaneousContacts.percentage} className="h-3" />
           </div>
@@ -53,13 +75,26 @@ const EngagementMetrics = ({
       </Card>
 
       <div className="space-y-6">
-        <MetricCard
-          title="Acionamentos Humanos"
-          value={humanActivations.count.toLocaleString()}
-          percentage={humanActivations.percentage}
-          icon={Phone}
-          description="Escalações para atendimento humano"
-        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <MetricCard
+                  title="Acionamentos Humanos"
+                  value={humanActivations.count.toLocaleString()}
+                  percentage={humanActivations.percentage}
+                  icon={Phone}
+                  description="Escalações para atendimento humano"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <span>
+                Quantidade de vezes que a IA acionou a equipe especializada, seja por solicitação do paciente ou por complicação detectada.
+              </span>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
         <MetricCard
           title="Pesquisa de Satisfação"

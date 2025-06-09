@@ -1,6 +1,8 @@
-
-import { MessageCircle, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, StarOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ConversationCardProps {
   conversation: {
@@ -22,6 +24,34 @@ interface ConversationCardProps {
 }
 
 const ConversationCard = ({ conversation }: ConversationCardProps) => {
+  const navigate = useNavigate();
+  const [isPriority, setIsPriority] = useState(conversation.is_priority);
+  const [isRead, setIsRead] = useState(conversation.is_read);
+  const [loadingPriority, setLoadingPriority] = useState(false);
+  const [loadingRead, setLoadingRead] = useState(false);
+
+  const togglePriority = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoadingPriority(true);
+    const { error } = await supabase
+      .from('conversas')
+      .update({ is_priority: !isPriority })
+      .eq('id', conversation.id);
+    if (!error) setIsPriority(!isPriority);
+    setLoadingPriority(false);
+  };
+
+  const markAsRead = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoadingRead(true);
+    const { error } = await supabase
+      .from('conversas')
+      .update({ is_read: true })
+      .eq('id', conversation.id);
+    if (!error) setIsRead(true);
+    setLoadingRead(false);
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'em_acompanhamento':
@@ -80,25 +110,31 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
   return (
     <div 
       className={`p-5 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${
-        !conversation.is_read ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'
+        !isRead ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'
       }`}
+      onClick={() => navigate(`/conversas/${conversation.id}`)}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon(conversation.status)}
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-1">
                 {conversation.pacientes?.nome || 'Paciente não identificado'}
+                <button
+                  onClick={togglePriority}
+                  className={`ml-1 ${loadingPriority ? 'opacity-50 pointer-events-none' : ''}`}
+                  title={isPriority ? 'Remover prioridade' : 'Marcar como prioritária'}
+                  aria-label="Alternar prioridade"
+                >
+                  {isPriority ? <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" /> : <StarOff className="w-4 h-4 text-gray-400" />}
+                </button>
               </h3>
             </div>
             <Badge className={getStatusColor(conversation.status)}>
               {getStatusLabel(conversation.status)}
             </Badge>
-            {conversation.is_priority && (
-              <Badge variant="destructive">Prioritária</Badge>
-            )}
-            {!conversation.is_read && conversation.unread_count && conversation.unread_count > 0 && (
+            {conversation.unread_count && conversation.unread_count > 0 && !conversation.is_read && (
               <Badge variant="secondary">
                 {conversation.unread_count} nova{conversation.unread_count > 1 ? 's' : ''}
               </Badge>
