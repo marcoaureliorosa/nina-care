@@ -38,6 +38,7 @@ interface UserFormDialogProps {
   onDialogClose: () => void;
   onDelete?: (id: string) => void;
   hideOrganizationSelect?: boolean;
+  openNewUserDialog?: () => void;
 }
 
 const UserFormDialog = ({
@@ -51,12 +52,13 @@ const UserFormDialog = ({
   onSubmit,
   onDialogClose,
   onDelete,
-  hideOrganizationSelect
+  hideOrganizationSelect,
+  openNewUserDialog
 }: UserFormDialogProps) => {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={openNewUserDialog || (() => setDialogOpen(true))}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Usuário
         </Button>

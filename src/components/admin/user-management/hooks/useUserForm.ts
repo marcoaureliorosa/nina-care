@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile, UserFormData } from '../types';
+import { UserProfile } from '../types';
 import type { Database } from '@/integrations/supabase/types';
 import { validateEmail, validateName, validatePhone, validateUrl } from '@/utils/validations';
+import { ROLE_OPTIONS } from '@/utils/permissions';
+
+// Definir o tipo para FormData
+interface UserFormData {
+  nome: string;
+  email: string;
+  telefone: string;
+  role: string;
+  organizacao_id: string;
+  is_active: boolean;
+  avatar_url: string;
+  can_manage_organizations: boolean;
+}
 
 // Função para gerar senha temporária que atende aos requisitos do Supabase
 const generateTemporaryPassword = (): string => {
@@ -48,15 +61,25 @@ export const useUserForm = (
     can_manage_organizations: false
   });
 
+  // Atualizar automaticamente can_manage_organizations baseado no role
+  const handleRoleChange = (newRole: string) => {
+    const roleOption = ROLE_OPTIONS.find(r => r.value === newRole);
+    setFormData(prev => ({
+      ...prev,
+      role: newRole,
+      can_manage_organizations: roleOption?.canManageOrg || false
+    }));
+  };
+
   // Atualizar organizacao_id quando o profile for carregado
   useEffect(() => {
-    if (profile?.organizacao_id && !editingUser) {
+    if (profile?.organizacao_id) {
       setFormData(prev => ({
         ...prev,
         organizacao_id: profile.organizacao_id
       }));
     }
-  }, [profile?.organizacao_id, editingUser]);
+  }, [profile?.organizacao_id]);
 
   const resetForm = () => {
     setFormData({
@@ -70,6 +93,22 @@ export const useUserForm = (
       can_manage_organizations: false
     });
     setEditingUser(null);
+  };
+
+  // Função para abrir o dialog de novo usuário
+  const openNewUserDialog = () => {
+    setEditingUser(null);
+    setFormData({
+      nome: '',
+      email: '',
+      telefone: '',
+      role: 'recepcionista',
+      organizacao_id: profile?.organizacao_id || '',
+      is_active: true,
+      avatar_url: '',
+      can_manage_organizations: false
+    });
+    setDialogOpen(true);
   };
 
   const handleEdit = (user: UserProfile) => {
@@ -128,6 +167,17 @@ export const useUserForm = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Garantir que a organizacao_id está sempre presente
+    const finalOrgId = formData.organizacao_id || profile?.organizacao_id;
+    if (!finalOrgId) {
+      toast({
+        title: "Erro de configuração",
+        description: "Não foi possível determinar a organização. Faça login novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validar formulário
     const validation = validateForm();
     if (!validation.isValid) {
@@ -143,14 +193,13 @@ export const useUserForm = (
     try {
       if (editingUser) {
         // Atualizar usuário existente
-        const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
         const { error } = await supabase
           .from('profiles')
           .update({
             nome: formData.nome,
             telefone: formData.telefone,
-            role: roleEnum,
-            organizacao_id: formData.organizacao_id,
+            role: formData.role as any,
+            organizacao_id: finalOrgId,
             is_active: formData.is_active,
             avatar_url: formData.avatar_url,
             can_manage_organizations: formData.can_manage_organizations
@@ -164,16 +213,16 @@ export const useUserForm = (
           description: "O usuário foi atualizado com sucesso.",
         });
       } else {
-        // Criar novo usuário - o trigger handle_new_user criará o profile automaticamente
+        // Criar novo usuário - passar organizacao_id no metadata
         const { data, error: inviteError } = await supabase.auth.signUp({
           email: formData.email,
           password: generateTemporaryPassword(),
           options: {
             data: {
-              name: formData.nome, // Usar 'name' para o trigger pegar corretamente
+              name: formData.nome,
               nome: formData.nome,
               role: formData.role,
-              organizacao_id: formData.organizacao_id,
+              organizacao_id: finalOrgId, // Garantir que seja passado
               telefone: formData.telefone,
               avatar_url: formData.avatar_url,
               can_manage_organizations: formData.can_manage_organizations
@@ -186,32 +235,39 @@ export const useUserForm = (
         const userId = data.user?.id;
         if (!userId) throw new Error('Erro ao criar usuário.');
 
-        // Aguardar um pouco para o trigger ser executado
+        // Aguardar para o trigger ser executado
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Atualizar o profile criado pelo trigger com os dados completos
-        const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
-        const { error: updateError } = await supabase
+        // Verificar se o profile foi criado corretamente
+        const { data: profileCheck } = await supabase
           .from('profiles')
-          .update({
-            nome: formData.nome,
-            telefone: formData.telefone,
-            role: roleEnum,
-            organizacao_id: formData.organizacao_id,
-            is_active: formData.is_active,
-            avatar_url: formData.avatar_url,
-            can_manage_organizations: formData.can_manage_organizations
-          })
-          .eq('id', userId);
+          .select('organizacao_id')
+          .eq('id', userId)
+          .single();
 
-        if (updateError) {
-          console.error('Erro ao atualizar perfil:', updateError);
-          // Não falhar completamente, pois o usuário foi criado
+        // Se a organização não foi definida corretamente, forçar update
+        if (!profileCheck?.organizacao_id || profileCheck.organizacao_id !== finalOrgId) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              nome: formData.nome,
+              telefone: formData.telefone,
+              role: formData.role as any,
+              organizacao_id: finalOrgId, // Forçar a organização correta
+              is_active: formData.is_active,
+              avatar_url: formData.avatar_url,
+              can_manage_organizations: formData.can_manage_organizations
+            })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Erro ao atualizar perfil:', updateError);
+          }
         }
 
         toast({
           title: "Convite enviado",
-          description: `Um convite foi enviado para ${formData.email}. O usuário receberá um link para confirmar sua conta e acessar o sistema.`,
+          description: `Um convite foi enviado para ${formData.email}. O usuário será vinculado à sua organização.`,
         });
       }
 
@@ -243,6 +299,9 @@ export const useUserForm = (
     setFormData,
     handleEdit,
     handleSubmit,
-    handleDialogClose
+    handleDialogClose,
+    handleRoleChange,
+    roleOptions: ROLE_OPTIONS,
+    openNewUserDialog
   };
 };

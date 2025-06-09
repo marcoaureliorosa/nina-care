@@ -21,7 +21,8 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
     setFormData,
     handleEdit,
     handleSubmit,
-    handleDialogClose
+    handleDialogClose,
+    openNewUserDialog
   } = useUserForm(profile, fetchUsers, setLoading, toast);
 
   // Função para deletar usuário e fechar modal
@@ -63,6 +64,7 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
         onDialogClose={handleDialogClose}
         onDelete={handleDeleteUser}
         hideOrganizationSelect={onlyCurrentOrganization}
+        openNewUserDialog={openNewUserDialog}
       />
 
       <UserTable
