@@ -20,7 +20,7 @@ const EngagementMetrics = ({
   satisfactionClicks
 }: EngagementMetricsProps) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,7 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, UserFormData } from '../types';
 import type { Database } from '@/integrations/supabase/types';
+import { validateEmail, validateName, validatePhone, validateUrl } from '@/utils/validations';
+
+// Função para gerar senha temporária que atende aos requisitos do Supabase
+const generateTemporaryPassword = (): string => {
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const symbols = '!@#$%^&*()_+-=[]{}|;\':",./<>?';
+  
+  // Garantir pelo menos um caractere de cada tipo
+  const password = [
+    lowercase[Math.floor(Math.random() * lowercase.length)],
+    uppercase[Math.floor(Math.random() * uppercase.length)],
+    numbers[Math.floor(Math.random() * numbers.length)],
+    symbols[Math.floor(Math.random() * symbols.length)]
+  ];
+  
+  // Adicionar mais caracteres aleatórios para completar uma senha de 16 caracteres
+  const allChars = lowercase + uppercase + numbers + symbols;
+  for (let i = 4; i < 16; i++) {
+    password.push(allChars[Math.floor(Math.random() * allChars.length)]);
+  }
+  
+  // Embaralhar o array para randomizar a posição dos caracteres obrigatórios
+  return password.sort(() => Math.random() - 0.5).join('');
+};
 
 export const useUserForm = (
   profile: any,
@@ -16,11 +42,21 @@ export const useUserForm = (
     email: '',
     telefone: '',
     role: 'recepcionista',
-    organizacao_id: '',
+    organizacao_id: profile?.organizacao_id || '',
     is_active: true,
     avatar_url: '',
     can_manage_organizations: false
   });
+
+  // Atualizar organizacao_id quando o profile for carregado
+  useEffect(() => {
+    if (profile?.organizacao_id && !editingUser) {
+      setFormData(prev => ({
+        ...prev,
+        organizacao_id: profile.organizacao_id
+      }));
+    }
+  }, [profile?.organizacao_id, editingUser]);
 
   const resetForm = () => {
     setFormData({
@@ -51,33 +87,62 @@ export const useUserForm = (
     setDialogOpen(true);
   };
 
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Validação de nome
+    if (!formData.nome.trim()) {
+      errors.push("Nome é obrigatório");
+    } else if (!validateName(formData.nome)) {
+      errors.push("Nome deve conter pelo menos nome e sobrenome");
+    }
+
+    // Validação de email
+    if (!formData.email.trim()) {
+      errors.push("Email é obrigatório");
+    } else if (!validateEmail(formData.email)) {
+      errors.push("Email deve ter um formato válido");
+    }
+
+    // Validação de telefone (se preenchido)
+    if (formData.telefone && !validatePhone(formData.telefone)) {
+      errors.push("Telefone deve ter entre 10 e 11 dígitos");
+    }
+
+    // Validação de URL do avatar (se preenchida)
+    if (formData.avatar_url && !validateUrl(formData.avatar_url)) {
+      errors.push("URL do avatar deve ser válida");
+    }
+
+    // Validação de organização
+    if (!formData.organizacao_id) {
+      errors.push("Organização é obrigatória");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome.trim() || !formData.email.trim()) {
+    // Validar formulário
+    const validation = validateForm();
+    if (!validation.isValid) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Nome e email são obrigatórios.",
+        title: "Dados inválidos",
+        description: validation.errors.join('. '),
         variant: "destructive",
       });
       return;
     }
 
-    // Cadastro de novo usuário
-    if (!editingUser) {
-      if (!formData.password || formData.password.length < 6) {
-        toast({
-          title: "Senha obrigatória",
-          description: "A senha deve ter pelo menos 6 caracteres.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
     setLoading(true);
     try {
       if (editingUser) {
+        // Atualizar usuário existente
         const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
         const { error } = await supabase
           .from('profiles')
@@ -99,17 +164,32 @@ export const useUserForm = (
           description: "O usuário foi atualizado com sucesso.",
         });
       } else {
-        // 1. Criar usuário no Auth
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password!,
-        });
-        if (signUpError) throw signUpError;
-        const userId = data.user?.id;
-        if (!userId) throw new Error('Erro ao obter o ID do usuário criado.');
-
-        // 2. Inserir perfil na tabela 'profiles'
+        // Criar novo usuário com magic link
         const roleEnum = formData.role as unknown as Database["public"]["Enums"]["user_role"];
+        
+        // Usar o método correto para convidar usuário
+        const { data, error: inviteError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: generateTemporaryPassword(), // Senha temporária que será substituída
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              nome: formData.nome,
+              role: formData.role,
+              organizacao_id: formData.organizacao_id,
+              telefone: formData.telefone,
+              avatar_url: formData.avatar_url,
+              can_manage_organizations: formData.can_manage_organizations
+            }
+          }
+        });
+
+        if (inviteError) throw inviteError;
+        
+        const userId = data.user?.id;
+        if (!userId) throw new Error('Erro ao criar usuário.');
+
+        // Inserir perfil na tabela 'profiles'
         const profileInsert: Database["public"]["Tables"]["profiles"]["Insert"] = {
           id: userId,
           nome: formData.nome,
@@ -121,14 +201,20 @@ export const useUserForm = (
           avatar_url: formData.avatar_url,
           can_manage_organizations: formData.can_manage_organizations
         };
+
         const { error: profileError } = await supabase
           .from('profiles')
           .insert(profileInsert);
-        if (profileError) throw profileError;
+
+        if (profileError) {
+          // Se falhar a criação do perfil, tentar remover o usuário criado
+          console.error('Erro ao criar perfil:', profileError);
+          throw profileError;
+        }
 
         toast({
-          title: "Usuário criado",
-          description: "O usuário foi cadastrado com sucesso.",
+          title: "Convite enviado",
+          description: `Um convite foi enviado para ${formData.email}. O usuário receberá um link para confirmar sua conta e acessar o sistema.`,
         });
       }
 
@@ -144,8 +230,6 @@ export const useUserForm = (
       });
     } finally {
       setLoading(false);
-      // Limpar senha do formData por segurança
-      setFormData((prev) => ({ ...prev, password: '' }));
     }
   };
 

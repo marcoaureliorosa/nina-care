@@ -13,6 +13,7 @@ import {
 import OrganizationManagement from '@/components/admin/OrganizationManagement';
 import UserManagement from '@/components/admin/UserManagement';
 import WhatsAppManagement from '@/components/whatsapp/WhatsAppManagement';
+import PendingInvitations from '@/components/admin/user-management/PendingInvitations';
 import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -181,25 +182,7 @@ const ConfiguracoesPage = () => {
                 
                 {/* User Management Quick Links */}
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                  <Card className="border border-border/30 hover:border-border/60 transition-all">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-primary/10 p-2 rounded-full">
-                            <Users className="w-5 h-5 text-primary" />
-                          </div>
-                          <h3 className="font-medium">Convites Pendentes</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Visualize e gerencie convites pendentes para novos usuários da organização.
-                        </p>
-                        <Button variant="outline" size="sm" className="w-full justify-between mt-2">
-                          <span>Ver convites</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PendingInvitations />
                   
                   <Card className="border border-border/30 hover:border-border/60 transition-all">
                     <CardContent className="p-6">

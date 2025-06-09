@@ -21,7 +21,10 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import AvatarUpload from '@/components/ui/avatar-upload';
 import { UserProfile, Organization, UserFormData } from './types';
+import { cn } from '@/lib/utils';
+import { validateEmail, validateName, validatePhone } from '@/utils/validations';
 
 interface UserFormDialogProps {
   dialogOpen: boolean;
@@ -64,7 +67,10 @@ const UserFormDialog = ({
             {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
           </DialogTitle>
           <DialogDescription>
-            Preencha os dados do usuário abaixo.
+            {editingUser 
+              ? 'Preencha os dados do usuário abaixo.' 
+              : 'Preencha os dados do usuário. Um convite será enviado por email para que ele possa definir sua senha e acessar o sistema.'
+            }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -75,9 +81,17 @@ const UserFormDialog = ({
               id="nome"
               value={formData.nome}
               onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-              placeholder="Nome completo"
+              placeholder="Nome completo (nome e sobrenome)"
               required
+              className={cn(
+                formData.nome && !validateName(formData.nome) 
+                  ? "border-red-500 focus:border-red-500" 
+                  : ""
+              )}
             />
+            {formData.nome && !validateName(formData.nome) && (
+              <p className="text-sm text-red-500">Nome deve conter pelo menos nome e sobrenome</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -90,33 +104,33 @@ const UserFormDialog = ({
               placeholder="usuario@email.com"
               required
               disabled={!!editingUser}
+              className={cn(
+                formData.email && !validateEmail(formData.email) 
+                  ? "border-red-500 focus:border-red-500" 
+                  : ""
+              )}
             />
+            {formData.email && !validateEmail(formData.email) && (
+              <p className="text-sm text-red-500">Email deve ter um formato válido</p>
+            )}
           </div>
 
-          {/* Campo de senha apenas para novo usuário */}
-          {!editingUser && (
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha *</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Digite uma senha segura"
-                required
-                minLength={6}
-              />
-            </div>
-          )}
-
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="telefone">Telefone</Label>
             <InputMaskPhone
               id="telefone"
               value={formData.telefone}
               onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '') }))}
               placeholder="(11) 99999-9999"
+              className={cn(
+                formData.telefone && !validatePhone(formData.telefone) 
+                  ? "border-red-500 focus:border-red-500" 
+                  : ""
+              )}
             />
+            {formData.telefone && !validatePhone(formData.telefone) && (
+              <p className="text-sm text-red-500">Telefone deve ter entre 10 e 11 dígitos</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -160,12 +174,13 @@ const UserFormDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="avatar_url">URL do Avatar</Label>
-            <Input
-              id="avatar_url"
-              value={formData.avatar_url || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
-              placeholder="https://exemplo.com/avatar.jpg"
+            <Label htmlFor="avatar_url">Foto do Perfil</Label>
+            <AvatarUpload
+              currentImageUrl={formData.avatar_url || undefined}
+              onImageChange={(imageUrl) => setFormData(prev => ({ ...prev, avatar_url: imageUrl || '' }))}
+              disabled={loading}
+              userName={formData.nome || 'Usuário'}
+              size="md"
             />
           </div>
 
@@ -208,7 +223,10 @@ const UserFormDialog = ({
                 Cancelar
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Salvando...' : (editingUser ? 'Atualizar' : 'Criar')}
+                {loading 
+                  ? 'Salvando...' 
+                  : (editingUser ? 'Atualizar' : 'Enviar Convite')
+                }
               </Button>
             </div>
 

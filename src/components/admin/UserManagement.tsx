@@ -52,7 +52,6 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
         users={filteredUsers}
         currentUserId={profile?.id}
         onEdit={handleEdit}
-        onOpenDialog={() => setDialogOpen(true)}
       />
     </div>
   );

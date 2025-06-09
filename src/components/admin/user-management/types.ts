@@ -30,5 +30,4 @@ export interface UserFormData {
   is_active: boolean;
   avatar_url?: string;
   can_manage_organizations?: boolean;
-  password?: string;
 }

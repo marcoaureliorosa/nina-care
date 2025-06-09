@@ -27,7 +27,6 @@ interface UserTableProps {
   users: UserProfile[];
   currentUserId?: string;
   onEdit: (user: UserProfile) => void;
-  onOpenDialog: () => void;
 }
 
 // Helper function to generate avatar fallback from name
@@ -57,7 +56,7 @@ const getRoleIcon = (role: string) => {
   }
 };
 
-const UserTable = ({ users, currentUserId, onEdit, onOpenDialog }: UserTableProps) => {
+const UserTable = ({ users, currentUserId, onEdit }: UserTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>(users);
 
@@ -135,10 +134,6 @@ const UserTable = ({ users, currentUserId, onEdit, onOpenDialog }: UserTableProp
               className="pl-8 pr-4"
             />
           </div>
-          <Button onClick={onOpenDialog} className="whitespace-nowrap">
-            <Users className="w-4 h-4 mr-2" />
-            Novo Usuário
-          </Button>
         </div>
       </div>
 
@@ -180,7 +175,7 @@ const UserTable = ({ users, currentUserId, onEdit, onOpenDialog }: UserTableProp
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4 flex-1">
                       <Avatar className="h-16 w-16 border-2 border-background">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nome}`} alt={user.nome} />
+                        <AvatarImage src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nome}`} alt={user.nome} />
                         <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
                           {getInitials(user.nome)}
                         </AvatarFallback>

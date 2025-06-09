@@ -1,73 +1,96 @@
-# Welcome to your Lovable project
+# Ninacare - Central de Monitoramento IA
 
-## Project info
+Plataforma Ninacare para acompanhamento de agentes IA em cuidados perioperatórios.
 
-**URL**: https://lovable.dev/projects/3d865d86-f6e4-415c-83e5-159eeaddd3d6
+## Sobre o Projeto
 
-## How can I edit this code?
+Sistema web desenvolvido para monitoramento e gestão de agentes de inteligência artificial especializados em cuidados perioperatórios. A plataforma oferece funcionalidades completas de gerenciamento de usuários, organizações, pacientes e conversas.
 
-There are several ways of editing your application.
+## Tecnologias Utilizadas
 
-**Use Lovable**
+Este projeto foi construído com:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3d865d86-f6e4-415c-83e5-159eeaddd3d6) and start prompting.
+- **Vite** - Build tool e servidor de desenvolvimento
+- **TypeScript** - Linguagem de programação
+- **React** - Framework frontend
+- **shadcn/ui** - Componentes de interface
+- **Tailwind CSS** - Framework de estilização
+- **Supabase** - Backend as a Service (banco de dados, autenticação, storage)
+- **React Router** - Roteamento
+- **React Hook Form** - Gerenciamento de formulários
+- **Framer Motion** - Animações
 
-Changes made via Lovable will be committed automatically to this repo.
+## Funcionalidades
 
-**Use your preferred IDE**
+- 🔐 **Autenticação e Autorização** - Sistema completo de login/logout com diferentes níveis de acesso
+- 👥 **Gerenciamento de Usuários** - CRUD completo com roles e permissões
+- 🏢 **Gestão de Organizações** - Múltiplas organizações com isolamento de dados
+- 💬 **Sistema de Conversas** - Interface para acompanhar interações com agentes IA
+- 👤 **Perfis de Pacientes** - Cadastro e gerenciamento de informações dos pacientes
+- 📊 **Dashboard** - Visualização de métricas e indicadores
+- 🔧 **Configurações** - Painel administrativo com configurações do sistema
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Como Executar o Projeto
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Pré-requisitos
 
-Follow these steps:
+- Node.js (versão 16 ou superior)
+- npm ou yarn
+- Conta no Supabase (para backend)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Instalação
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+# 1. Clone o repositório
+git clone <URL_DO_REPOSITORIO>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 2. Entre no diretório do projeto
+cd nina-care
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 3. Instale as dependências
+npm install
+
+# 4. Configure as variáveis de ambiente
+cp .env.example .env.local
+# Edite o arquivo .env.local com suas credenciais do Supabase
+
+# 5. Execute o projeto em desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Variáveis de Ambiente
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Scripts Disponíveis
 
-## What technologies are used for this project?
+- `npm run dev` - Inicia o servidor de desenvolvimento
+- `npm run build` - Gera build de produção
+- `npm run preview` - Visualiza o build de produção
+- `npm run lint` - Executa verificação de código
 
-This project is built with:
+## Estrutura do Projeto
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+├── components/          # Componentes React reutilizáveis
+│   ├── ui/             # Componentes base do sistema de design
+│   ├── admin/          # Componentes específicos para administração
+│   └── dashboard/      # Componentes do dashboard
+├── contexts/           # Contextos React (Auth, etc.)
+├── hooks/              # Custom hooks
+├── integrations/       # Integrações externas (Supabase)
+├── pages/              # Páginas da aplicação
+├── types/              # Definições de tipos TypeScript
+├── utils/              # Funções utilitárias
+└── main.tsx           # Ponto de entrada da aplicação
+```
 
-## How can I deploy this project?
+## Licença
 
-Simply open [Lovable](https://lovable.dev/projects/3d865d86-f6e4-415c-83e5-159eeaddd3d6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Este projeto é propriedade da Ninacare. Todos os direitos reservados.
