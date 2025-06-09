@@ -7,10 +7,12 @@ import {
   ShieldCheck, 
   ChevronRight,
   Info,
-  ArrowRight
+  ArrowRight,
+  MessageCircle
 } from "lucide-react";
 import OrganizationManagement from '@/components/admin/OrganizationManagement';
 import UserManagement from '@/components/admin/UserManagement';
+import WhatsAppManagement from '@/components/whatsapp/WhatsAppManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -61,6 +63,10 @@ const ConfiguracoesPage = () => {
                 <TabsTrigger value="users" className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   <span>Usuários</span>
+                </TabsTrigger>
+                <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  <span>WhatsApp</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -215,6 +221,37 @@ const ConfiguracoesPage = () => {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+              
+              {/* WhatsApp Tab */}
+              <TabsContent value="whatsapp" className="space-y-6">
+                <Card className="border-border/40 shadow-sm">
+                  <CardHeader className="bg-muted/30 pb-4 border-b border-border/20">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <MessageCircle className="w-5 h-5 text-primary" />
+                        </div>
+                        <CardTitle className="text-xl">Gestão do WhatsApp</CardTitle>
+                      </div>
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" />
+                        Admin
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Gerencie a conexão do WhatsApp do agente para envio e recebimento de mensagens automatizadas.
+                      </p>
+                      <div className="bg-gradient-to-r from-muted/50 to-transparent h-px w-full my-4" />
+                      <div className="overflow-visible">
+                        <WhatsAppManagement />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
