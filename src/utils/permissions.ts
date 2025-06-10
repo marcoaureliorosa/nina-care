@@ -100,7 +100,7 @@ export const usePermissions = (userRole?: string) => {
   };
 };
 
-// Lista de roles organizados para formulários
+// Lista de roles organizados para formulários - APENAS 3 PERFIS PRINCIPAIS
 export const ROLE_OPTIONS = [
   {
     value: 'admin',
@@ -115,21 +115,9 @@ export const ROLE_OPTIONS = [
     canManageOrg: false
   },
   {
-    value: 'nurse',
-    label: 'Enfermeiro(a)',
-    description: 'Equipe - sem acesso a configurações',
-    canManageOrg: false
-  },
-  {
-    value: 'secretary',
-    label: 'Secretário(a)',
-    description: 'Equipe - sem acesso a configurações', 
-    canManageOrg: false
-  },
-  {
     value: 'recepcionista',
-    label: 'Recepcionista',
-    description: 'Equipe - sem acesso a configurações',
+    label: 'Equipe',
+    description: 'Acesso básico - sem configurações',
     canManageOrg: false
   }
 ] as const; 

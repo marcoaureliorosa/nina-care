@@ -46,9 +46,6 @@ const getRoleIcon = (role: string) => {
       return <Shield className="w-4 h-4" />;
     case 'doctor':
       return <Stethoscope className="w-4 h-4" />;
-    case 'nurse':
-      return <UserCheck className="w-4 h-4" />;
-    case 'secretary':
     case 'recepcionista':
       return <ClipboardList className="w-4 h-4" />;
     default:
@@ -73,21 +70,17 @@ const UserTable = ({ users, currentUserId, onEdit }: UserTableProps) => {
     const roleColors = {
       admin: 'bg-red-100 text-red-800 hover:bg-red-200',
       doctor: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-      nurse: 'bg-green-100 text-green-800 hover:bg-green-200',
-      secretary: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
-      recepcionista: 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+      recepcionista: 'bg-green-100 text-green-800 hover:bg-green-200'
     };
     
     const roleLabels = {
       admin: 'Administrador',
       doctor: 'Médico',
-      nurse: 'Enfermeiro',
-      secretary: 'Secretário',
-      recepcionista: 'Recepcionista'
+      recepcionista: 'Equipe'
     };
 
     const roleColor = roleColors[role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    const roleLabel = roleLabels[role as keyof typeof roleLabels] || role;
+    const roleLabel = roleLabels[role as keyof typeof roleLabels] || 'Equipe';
 
     return (
       <Badge variant="outline" className={cn("flex items-center gap-1 px-2 py-1 rounded-full", roleColor)}>

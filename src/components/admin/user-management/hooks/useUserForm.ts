@@ -126,35 +126,35 @@ export const useUserForm = (
     setDialogOpen(true);
   };
 
-  const validateForm = (): { isValid: boolean; errors: string[] } => {
+  const validateForm = (data: UserFormData): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     // Validação de nome
-    if (!formData.nome.trim()) {
+    if (!data.nome.trim()) {
       errors.push("Nome é obrigatório");
-    } else if (!validateName(formData.nome)) {
+    } else if (!validateName(data.nome)) {
       errors.push("Nome deve conter pelo menos nome e sobrenome");
     }
 
     // Validação de email
-    if (!formData.email.trim()) {
+    if (!data.email.trim()) {
       errors.push("Email é obrigatório");
-    } else if (!validateEmail(formData.email)) {
+    } else if (!validateEmail(data.email)) {
       errors.push("Email deve ter um formato válido");
     }
 
     // Validação de telefone (se preenchido)
-    if (formData.telefone && !validatePhone(formData.telefone)) {
+    if (data.telefone && !validatePhone(data.telefone)) {
       errors.push("Telefone deve ter entre 10 e 11 dígitos");
     }
 
     // Validação de URL do avatar (se preenchida)
-    if (formData.avatar_url && !validateUrl(formData.avatar_url)) {
+    if (data.avatar_url && !validateUrl(data.avatar_url)) {
       errors.push("URL do avatar deve ser válida");
     }
 
     // Validação de organização
-    if (!formData.organizacao_id) {
+    if (!data.organizacao_id) {
       errors.push("Organização é obrigatória");
     }
 
@@ -166,20 +166,40 @@ export const useUserForm = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Obter a organização do usuário logado diretamente do banco de dados
+    const { data: orgData, error: orgError } = await supabase.rpc('get_current_user_org');
     
-    // Garantir que a organizacao_id está sempre presente
-    const finalOrgId = formData.organizacao_id || profile?.organizacao_id;
-    if (!finalOrgId) {
+    if (orgError || !orgData) {
       toast({
-        title: "Erro de configuração",
-        description: "Não foi possível determinar a organização. Faça login novamente.",
+        title: "Erro de permissão",
+        description: "Não foi possível verificar sua organização. Faça login novamente.",
         variant: "destructive",
       });
       return;
     }
+    
+    const currentUserOrgId = orgData;
 
-    // Validar formulário
-    const validation = validateForm();
+    // 2. Garantir que a organizacao_id do formulário esteja correta
+    const finalOrgId = formData.organizacao_id || currentUserOrgId;
+
+    if (!finalOrgId) {
+      toast({
+        title: "Erro de configuração",
+        description: "A organização do novo usuário não pôde ser determinada.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const finalFormData = {
+      ...formData,
+      organizacao_id: finalOrgId,
+    };
+
+    // 3. Validar formulário com os dados finais
+    const validation = validateForm(finalFormData);
     if (!validation.isValid) {
       toast({
         title: "Dados inválidos",
@@ -192,17 +212,17 @@ export const useUserForm = (
     setLoading(true);
     try {
       if (editingUser) {
-        // Atualizar usuário existente
+        // ATUALIZAR USUÁRIO
         const { error } = await supabase
           .from('profiles')
           .update({
-            nome: formData.nome,
-            telefone: formData.telefone,
-            role: formData.role as any,
-            organizacao_id: finalOrgId,
-            is_active: formData.is_active,
-            avatar_url: formData.avatar_url,
-            can_manage_organizations: formData.can_manage_organizations
+            nome: finalFormData.nome,
+            telefone: finalFormData.telefone,
+            role: finalFormData.role as any,
+            organizacao_id: finalFormData.organizacao_id,
+            is_active: finalFormData.is_active,
+            avatar_url: finalFormData.avatar_url,
+            can_manage_organizations: finalFormData.can_manage_organizations
           })
           .eq('id', editingUser.id);
 
@@ -213,72 +233,39 @@ export const useUserForm = (
           description: "O usuário foi atualizado com sucesso.",
         });
       } else {
-        // Criar novo usuário - passar organizacao_id no metadata
+        // CRIAR NOVO USUÁRIO
         const { data, error: inviteError } = await supabase.auth.signUp({
-          email: formData.email,
+          email: finalFormData.email,
           password: generateTemporaryPassword(),
           options: {
             data: {
-              name: formData.nome,
-              nome: formData.nome,
-              role: formData.role,
-              organizacao_id: finalOrgId, // Garantir que seja passado
-              telefone: formData.telefone,
-              avatar_url: formData.avatar_url,
-              can_manage_organizations: formData.can_manage_organizations
+              nome: finalFormData.nome,
+              role: finalFormData.role,
+              organizacao_id: finalFormData.organizacao_id,
+              telefone: finalFormData.telefone,
+              avatar_url: finalFormData.avatar_url,
+              can_manage_organizations: finalFormData.can_manage_organizations
             }
           }
         });
 
         if (inviteError) throw inviteError;
+        if (!data.user) throw new Error('Criação do usuário falhou.');
         
-        const userId = data.user?.id;
-        if (!userId) throw new Error('Erro ao criar usuário.');
-
-        // Aguardar para o trigger ser executado
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Verificar se o profile foi criado corretamente
-        const { data: profileCheck } = await supabase
-          .from('profiles')
-          .select('organizacao_id')
-          .eq('id', userId)
-          .single();
-
-        // Se a organização não foi definida corretamente, forçar update
-        if (!profileCheck?.organizacao_id || profileCheck.organizacao_id !== finalOrgId) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({
-              nome: formData.nome,
-              telefone: formData.telefone,
-              role: formData.role as any,
-              organizacao_id: finalOrgId, // Forçar a organização correta
-              is_active: formData.is_active,
-              avatar_url: formData.avatar_url,
-              can_manage_organizations: formData.can_manage_organizations
-            })
-            .eq('id', userId);
-
-          if (updateError) {
-            console.error('Erro ao atualizar perfil:', updateError);
-          }
-        }
-
         toast({
-          title: "Convite enviado",
-          description: `Um convite foi enviado para ${formData.email}. O usuário será vinculado à sua organização.`,
+          title: "Convite Enviado",
+          description: `O convite para ${finalFormData.email} foi enviado com sucesso.`,
         });
       }
+      
+      await fetchUsers();
+      handleDialogClose();
 
-      setDialogOpen(false);
-      resetForm();
-      fetchUsers();
     } catch (error: any) {
-      console.error('Error saving user:', error);
+      console.error('Submit error:', error);
       toast({
         title: "Erro ao salvar",
-        description: error.message || "Não foi possível salvar o usuário.",
+        description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     } finally {

@@ -44,7 +44,8 @@ const PendingInvitations: React.FC = () => {
   const fetchPendingUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar profiles criados nas últimas 48 horas (convites recentes)
+      const { data: recentProfiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -56,19 +57,12 @@ const PendingInvitations: React.FC = () => {
             nome
           )
         `)
-        .order('created_at', { ascending: false })
-        .limit(20);
+        .gte('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()) // Últimas 48 horas
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      // Filtrar usuários criados nas últimas 24 horas (potenciais convites pendentes)
-      const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const recentUsers = data?.filter(user => {
-        const createdAt = new Date(user.created_at);
-        return createdAt > last24Hours;
-      }) || [];
-
-      setPendingUsers(recentUsers as unknown as PendingUser[]);
+      setPendingUsers((recentProfiles as unknown as PendingUser[]) || []);
     } catch (error) {
       console.error('Error fetching pending users:', error);
       toast({

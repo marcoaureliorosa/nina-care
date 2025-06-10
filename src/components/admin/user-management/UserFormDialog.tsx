@@ -117,7 +117,7 @@ const UserFormDialog = ({
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="telefone">Telefone</Label>
             <InputMaskPhone
               id="telefone"
@@ -147,9 +147,7 @@ const UserFormDialog = ({
               <SelectContent>
                 <SelectItem value="admin">Administrador</SelectItem>
                 <SelectItem value="doctor">Médico</SelectItem>
-                <SelectItem value="nurse">Enfermeiro</SelectItem>
-                <SelectItem value="secretary">Secretário</SelectItem>
-                <SelectItem value="recepcionista">Recepcionista</SelectItem>
+                <SelectItem value="recepcionista">Equipe</SelectItem>
               </SelectContent>
             </Select>
           </div>
