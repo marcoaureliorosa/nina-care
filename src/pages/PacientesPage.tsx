@@ -300,7 +300,7 @@ const PacientesPage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone <span className="text-red-500">*</span></Label>
-              <InputMaskPhone id="phone" name="phone" placeholder="(00) 00000-0000" required pattern="\\d{11}" />
+              <InputMaskPhone id="phone" name="phone" placeholder="(00) 00000-0000" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
@@ -366,7 +366,7 @@ const PacientesPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-phone">Telefone <span className="text-red-500">*</span></Label>
-                <InputMaskPhone id="edit-phone" name="phone" defaultValue={editingPatient.telefone} required pattern="\\d{11}" />
+                <InputMaskPhone id="edit-phone" name="phone" defaultValue={editingPatient.telefone} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>

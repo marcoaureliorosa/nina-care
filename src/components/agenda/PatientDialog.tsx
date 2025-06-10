@@ -52,7 +52,7 @@ const PatientDialog = ({ isOpen, onOpenChange, onSubmit }: PatientDialogProps) =
           </div>
           <div className="space-y-2">
             <Label htmlFor="patientPhone">Telefone <span className="text-red-500">*</span></Label>
-            <InputMaskPhone id="patientPhone" name="phone" placeholder="(00) 00000-0000" required pattern="\\d{11}" />
+            <InputMaskPhone id="patientPhone" name="phone" placeholder="(00) 00000-0000" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="patientBirthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
