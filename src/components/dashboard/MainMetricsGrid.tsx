@@ -29,15 +29,13 @@ const MainMetricsGrid = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div>
-              <MetricCard
-                title="Pacientes Cadastrados"
-                value={totalPatients.toLocaleString()}
-                percentage={patientsPercentage}
-                icon={Users}
-                description="Base total de pacientes"
-              />
-            </div>
+            <MetricCard
+              title="Pacientes Cadastrados"
+              value={totalPatients.toLocaleString()}
+              percentage={patientsPercentage}
+              icon={Users}
+              description="Base total de pacientes"
+            />
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>
@@ -50,15 +48,13 @@ const MainMetricsGrid = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div>
-              <MetricCard
-                title="Pacientes Ativos"
-                value={activePatients.count.toLocaleString()}
-                percentage={activePatients.percentage}
-                icon={UserCheck}
-                description="Pacientes com atividade recente"
-              />
-            </div>
+            <MetricCard
+              title="Pacientes Ativos"
+              value={activePatients.count.toLocaleString()}
+              percentage={activePatients.percentage}
+              icon={UserCheck}
+              description="Pacientes com atividade recente"
+            />
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>
@@ -71,15 +67,13 @@ const MainMetricsGrid = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div>
-              <MetricCard
-                title="Ativação da Nina"
-                value={ninaActivation.count.toLocaleString()}
-                percentage={ninaActivation.percentage}
-                icon={MessageCircle}
-                description="Pacientes que ativaram o agente IA"
-              />
-            </div>
+            <MetricCard
+              title="Ativação da Nina"
+              value={ninaActivation.count.toLocaleString()}
+              percentage={ninaActivation.percentage}
+              icon={MessageCircle}
+              description="Pacientes que ativaram o agente IA"
+            />
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>

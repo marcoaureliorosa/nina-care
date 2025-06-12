@@ -29,11 +29,60 @@ export const useDashboardMetrics = () => {
           spontaneousContacts: { count: 0, percentage: 0 },
           humanActivations: { count: 0, percentage: 0 },
           satisfactionClicks: 0,
-          userProfile: null
+          userProfile: null,
+          newPatientsMonthly: 0,
+          scheduledToday: 0,
+          pendingConversations: 0,
+          humanActivationsMonthly: 0,
+          upcomingAppointments: [],
         };
       }
 
       const organizacao_id = userProfile.organizacao_id;
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const todayStart = new Date(today.setHours(0, 0, 0, 0));
+      const todayEnd = new Date(today.setHours(23, 59, 59, 999));
+
+      // Novas Métricas
+      const { count: newPatientsMonthly } = await supabase
+        .from('pacientes')
+        .select('*', { count: 'exact', head: true })
+        .eq('organizacao_id', organizacao_id)
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      const { count: scheduledToday } = await supabase
+        .from('procedimentos')
+        .select('id', { count: 'exact', head: true })
+        .in('paciente_id', (await supabase.from('pacientes').select('id').eq('organizacao_id', organizacao_id)).data?.map(p => p.id) || [])
+        .gte('data_procedimento', todayStart.toISOString())
+        .lte('data_procedimento', todayEnd.toISOString());
+
+      const { count: pendingConversations } = await supabase
+        .from('conversas')
+        .select('id', { count: 'exact', head: true })
+        .in('paciente_id', (await supabase.from('pacientes').select('id').eq('organizacao_id', organizacao_id)).data?.map(p => p.id) || [])
+        .eq('is_read', false);
+
+      const { count: humanActivationsMonthly } = await supabase
+        .from('acionamentos_humanos')
+        .select('id', { count: 'exact', head: true })
+        .in('conversa_id', (await supabase.from('conversas').select('id').in('paciente_id', (await supabase.from('pacientes').select('id').eq('organizacao_id', organizacao_id)).data?.map(p => p.id) || [])).data?.map(c => c.id) || [])
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      const { data: upcomingAppointments } = await supabase
+        .from('procedimentos')
+        .select(`
+          id,
+          data_procedimento,
+          pacientes (nome),
+          medicos (nome)
+        `)
+        .in('paciente_id', (await supabase.from('pacientes').select('id').eq('organizacao_id', organizacao_id)).data?.map(p => p.id) || [])
+        .gte('data_procedimento', todayStart.toISOString())
+        .lte('data_procedimento', todayEnd.toISOString())
+        .order('data_procedimento', { ascending: true })
+        .limit(5);
 
       // 1. Número de procedimentos (agora manual)
       const procedures = userProfile.organizacoes?.procedures_performed ? Number(userProfile.organizacoes.procedures_performed) : 0;
@@ -164,6 +213,18 @@ export const useDashboardMetrics = () => {
       }
       const humanActivationsPercentage = pacientesCount && pacientesCount > 0 ? Math.round((humanActivationsCount / pacientesCount) * 100) : 0;
 
+      // Acionamentos humanos HOJE
+      let humanActivationsToday = 0;
+      if (conversasIds.length > 0) {
+        const { count: acionamentosHoje } = await supabase
+          .from('acionamentos_humanos')
+          .select('*', { count: 'exact', head: true })
+          .in('conversa_id', conversasIds)
+          .gte('created_at', todayStart.toISOString())
+          .lte('created_at', todayEnd.toISOString());
+        humanActivationsToday = acionamentosHoje || 0;
+      }
+
       return {
         procedures,
         totalPatients: pacientesCount || 0,
@@ -172,9 +233,14 @@ export const useDashboardMetrics = () => {
         ninaActivation: { count: ninaActivationCount, percentage: ninaActivationPercentage },
         responseRate24h: { count: respostas24h, percentage: responseRate24hPercentage },
         spontaneousContacts: { count: espontaneos, percentage: espontaneosPercentage },
-        humanActivations: { count: humanActivationsCount, percentage: humanActivationsPercentage },
+        humanActivations: { count: humanActivationsToday, percentage: 0 },
         satisfactionClicks: satisfactionClicks || 0,
-        userProfile
+        userProfile,
+        newPatientsMonthly: newPatientsMonthly || 0,
+        scheduledToday: scheduledToday || 0,
+        pendingConversations: pendingConversations || 0,
+        humanActivationsMonthly: humanActivationsMonthly || 0,
+        upcomingAppointments: upcomingAppointments || [],
       };
     },
     enabled: !!user?.id,

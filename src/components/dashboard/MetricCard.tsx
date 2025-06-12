@@ -41,13 +41,13 @@ const MetricCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
   >
-    <Card className="transition-all hover:shadow-xl border-0 bg-white/90 dark:bg-zinc-900/90 rounded-2xl p-0">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-ninacare-primary/10 p-3 flex items-center justify-center">
-            <Icon className="h-8 w-8 text-ninacare-primary" />
+    <Card className="transition-all hover:shadow-xl border-0 bg-white/90 dark:bg-zinc-900/90 rounded-2xl p-0 h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-ninacare-primary/10 p-2 flex items-center justify-center">
+            <Icon className="h-6 w-6 text-ninacare-primary" />
           </div>
-          <CardTitle className="text-base font-semibold text-zinc-700 dark:text-zinc-100">
+          <CardTitle className="text-sm font-semibold text-zinc-700 dark:text-zinc-100">
             {title}
           </CardTitle>
         </div>
@@ -58,8 +58,8 @@ const MetricCard = ({
           </span>
         )}
       </CardHeader>
-      <CardContent className="px-6 pb-6 pt-0">
-        <div className="text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+      <CardContent className="px-4 pb-4 pt-0 flex-grow">
+        <div className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">
           {value}
         </div>
         {description && (

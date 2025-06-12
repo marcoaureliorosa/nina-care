@@ -91,9 +91,8 @@ const EngagementMetrics = ({
                 transition={{ duration: 0.6 }}
               >
                 <MetricCard
-                  title="Acionamentos Humanos"
+                  title="Acionamentos Humanos (Hoje)"
                   value={humanActivations.count.toLocaleString()}
-                  percentage={humanActivations.percentage}
                   icon={Phone}
                   description="Escalações para atendimento humano"
                 />

@@ -20,10 +20,6 @@ const AgendaHeader = () => {
           <p className="text-sm text-white/80 mt-1 font-medium">Visualize, agende e gerencie compromissos de pacientes e profissionais.</p>
         </div>
       </div>
-      <div className="mt-4 md:mt-0 text-right w-full md:w-auto">
-        <p className="text-base text-white/90 font-medium">Gestão de Agenda</p>
-        <p className="text-xs text-white/70 mt-1">Calendário, compromissos e ações rápidas em um só lugar</p>
-      </div>
     </div>
   );
 };

@@ -261,63 +261,65 @@ const AgendaPage: FC = () => {
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
             </select>
-            <Button className="ml-auto px-4 py-2 rounded-full text-sm font-medium bg-ninacare-primary text-white hover:bg-ninacare-primary/90 transition flex items-center gap-2" onClick={handleOpenNewAppointmentDialog}>
-              <Plus className="w-4 h-4" /> Novo Agendamento
-            </Button>
           </div>
-          {/* Layout responsivo: calendário + cards */}
-          <div className="w-full flex flex-col md:flex-row gap-8">
-            <div className="md:w-1/2 w-full bg-white/80 rounded-2xl shadow p-4 md:p-6 flex flex-col items-center">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="w-full"
-                locale={ptBR}
-                modifiers={{ compromisso: diasComCompromissos }}
-                modifiersClassNames={{ 
-                  compromisso: 'text-ninacare-primary font-bold border-2 border-ninacare-primary/60 bg-ninacare-primary/5 hover:border-ninacare-primary hover:bg-ninacare-primary/10 transition-all' 
-                }}
-              />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Calendário */}
+            <div className="md:col-span-1">
+              <div className="md:w-full bg-white/80 rounded-2xl shadow p-4 md:p-6 flex flex-col items-center">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  className="w-full"
+                  locale={ptBR}
+                  modifiers={{ compromisso: diasComCompromissos }}
+                  modifiersClassNames={{ 
+                    compromisso: 'text-ninacare-primary font-bold border-2 border-ninacare-primary/60 bg-ninacare-primary/5 hover:border-ninacare-primary hover:bg-ninacare-primary/10 transition-all' 
+                  }}
+                />
+              </div>
             </div>
-            <div className="md:w-1/2 w-full flex flex-col gap-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Procedimentos Agendados</h2>
-                <Button onClick={handleOpenNewAppointmentDialog}>
-                  <Plus className="w-4 h-4 mr-2" />
+            <div className="md:col-span-2">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">Procedimentos Agendados</h2>
+                <Button onClick={handleOpenNewAppointmentDialog} className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
                   Novo Procedimento
                 </Button>
               </div>
-              {loading ? (
-                <div className="text-center text-zinc-400 py-12">Carregando...</div>
-              ) : compromissosFiltrados.length === 0 ? (
-                <div className="text-center text-zinc-400 py-12">Nenhum compromisso encontrado</div>
-              ) : (
-                compromissosFiltrados.map(c => (
-                  <Card key={c.id} className="bg-white/95 border-l-4 border-ninacare-primary/50 shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="flex-1 flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-ninacare-primary/10 flex items-center justify-center">
-                          <User className="w-5 h-5 text-ninacare-primary" />
+              <div className="bg-white rounded-lg shadow p-4 min-h-[300px]">
+                {loading ? (
+                  <p>Carregando...</p>
+                ) : compromissosFiltrados.length === 0 ? (
+                  <div className="text-center text-zinc-400 py-12">Nenhum compromisso encontrado</div>
+                ) : (
+                  compromissosFiltrados.map(c => (
+                    <Card key={c.id} className="bg-white/95 border-l-4 border-ninacare-primary/50 shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="flex-1 flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-ninacare-primary/10 flex items-center justify-center">
+                            <User className="w-5 h-5 text-ninacare-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-zinc-800 text-base">{c.patient}</p>
+                            <p className="text-sm text-zinc-500">{c.observacoes}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-zinc-800 text-base">{c.patient}</p>
-                          <p className="text-sm text-zinc-500">{c.observacoes}</p>
+                        <Badge variant="outline" className="text-xs font-medium capitalize h-6">
+                          {c.status}
+                        </Badge>
+                        <div className="flex flex-col items-end min-w-[80px]">
+                          <span className="text-xs text-zinc-400 font-mono mb-2">{new Date(c.data_procedimento).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <Button size="sm" variant="outline" className="text-ninacare-primary border-ninacare-primary" onClick={() => handleEditProcedure(c)}>
+                            <Edit className="w-4 h-4 mr-1" /> Editar
+                          </Button>
                         </div>
-                      </div>
-                      <Badge variant="outline" className="text-xs font-medium capitalize h-6">
-                        {c.status}
-                      </Badge>
-                      <div className="flex flex-col items-end min-w-[80px]">
-                        <span className="text-xs text-zinc-400 font-mono mb-2">{new Date(c.data_procedimento).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        <Button size="sm" variant="outline" className="text-ninacare-primary border-ninacare-primary" onClick={() => handleEditProcedure(c)}>
-                          <Edit className="w-4 h-4 mr-1" /> Editar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </main>
