@@ -11,6 +11,7 @@ import ProfilePage from "../pages/ProfilePage";
 import AdminPage from "../pages/AdminPage";
 import NotFound from "../pages/NotFound";
 import ConversationDetail from "./conversations/ConversationDetail";
+import ImportacoesPage from '../pages/ImportacoesPage';
 
 const AppLayout = () => {
   return (
@@ -24,6 +25,7 @@ const AppLayout = () => {
             <Route path="/conversas/:id" element={<ConversationDetail />} />
             <Route path="/pacientes" element={<PacientesPage />} />
             <Route path="/agenda" element={<AgendaPage />} />
+            <Route path="/importacoes" element={<ImportacoesPage />} />
             <Route path="/configuracoes" element={<ConfiguracoesPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />

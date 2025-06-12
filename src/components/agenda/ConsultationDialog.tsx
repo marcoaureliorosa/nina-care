@@ -1,10 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, UserPlus } from "lucide-react";
-import PatientDialog from "./PatientDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -13,15 +12,20 @@ interface ConsultationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
-  isPacienteDialogOpen: boolean;
-  onPacienteDialogOpenChange: (open: boolean) => void;
-  onPacienteSubmit: (e: React.FormEvent) => void;
-  initialData?: any;
+  onOpenPatientDialog: () => void;
+  editingProcedure?: any;
 }
 
-const PatientAutocomplete = ({ onSelect }: { onSelect: (patient: any) => void }) => {
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<any>(null);
+const PatientAutocomplete = ({ onSelect, initialPatient }: { onSelect: (patient: any) => void, initialPatient?: any }) => {
+  const [search, setSearch] = useState(initialPatient?.nome || "");
+  const [selected, setSelected] = useState<any>(initialPatient || null);
+
+  useEffect(() => {
+    if(initialPatient) {
+      setSearch(initialPatient.nome);
+      setSelected(initialPatient);
+    }
+  }, [initialPatient]);
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ["autocomplete-patients", search],
@@ -67,6 +71,7 @@ const PatientAutocomplete = ({ onSelect }: { onSelect: (patient: any) => void })
                 onClick={() => {
                   setSelected(p);
                   onSelect(p);
+                  setSearch(p.nome);
                 }}
               >
                 {p.nome} <span className="text-xs text-gray-400">{p.cpf}</span>
@@ -77,19 +82,6 @@ const PatientAutocomplete = ({ onSelect }: { onSelect: (patient: any) => void })
           )}
         </div>
       )}
-      {selected && (
-        <button
-          type="button"
-          className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-          onClick={() => {
-            setSelected(null);
-            setSearch("");
-            onSelect(null);
-          }}
-        >
-          x
-        </button>
-      )}
     </div>
   );
 };
@@ -98,12 +90,15 @@ const ConsultationDialog = ({
   isOpen, 
   onOpenChange, 
   onSubmit,
-  isPacienteDialogOpen,
-  onPacienteDialogOpenChange,
-  onPacienteSubmit,
-  initialData
+  onOpenPatientDialog,
+  editingProcedure: initialData
 }: ConsultationDialogProps) => {
   const [selectedPatient, setSelectedPatient] = useState<any>(initialData ? { id: initialData.paciente_id, nome: initialData.patient } : null);
+  
+  const handlePatientSelection = (patient: any) => {
+    setSelectedPatient(patient);
+  };
+  
   const { data: medicos, isLoading: isLoadingMedicos } = useQuery({
     queryKey: ["medicos-dropdown"],
     queryFn: async () => {
@@ -125,12 +120,6 @@ const ConsultationDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="bg-ninacare-primary hover:bg-ninacare-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Consulta/Procedimento
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{initialData ? "Editar Procedimento" : "Agendar Consulta/Procedimento"}</DialogTitle>
@@ -156,13 +145,13 @@ const ConsultationDialog = ({
             <Label htmlFor="patient">Paciente</Label>
             <div className="flex gap-2">
               <div className="flex-1">
-                <PatientAutocomplete onSelect={setSelectedPatient} />
+                <PatientAutocomplete onSelect={handlePatientSelection} initialPatient={selectedPatient} />
               </div>
               <Button 
                 type="button" 
                 variant="outline" 
                 size="icon"
-                onClick={() => onPacienteDialogOpenChange(true)}
+                onClick={onOpenPatientDialog}
                 title="Cadastrar novo paciente"
               >
                 <UserPlus className="w-4 h-4" />
@@ -218,11 +207,6 @@ const ConsultationDialog = ({
             </Button>
           </div>
         </form>
-        <PatientDialog 
-          isOpen={isPacienteDialogOpen}
-          onOpenChange={onPacienteDialogOpenChange}
-          onSubmit={onPacienteSubmit}
-        />
       </DialogContent>
     </Dialog>
   );

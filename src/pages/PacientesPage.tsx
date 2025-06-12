@@ -6,13 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input, InputMaskPhone } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import PatientsHeader from "@/components/patients/PatientsHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import PatientDialog from "@/components/patients/PatientDialog";
+
+interface Medico {
+  id: string;
+  nome: string;
+}
 
 const PacientesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -21,6 +27,25 @@ const PacientesPage = () => {
   const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
   const [editingPatient, setEditingPatient] = useState<any | null>(null);
   const { profile } = useAuth();
+
+  // Buscar médicos
+  const { data: medicos, isLoading: isLoadingMedicos } = useQuery<Medico[]>({
+    queryKey: ['medicos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('medicos')
+        .select('id, nome')
+        .eq('organizacao_id', profile?.organizacao_id);
+
+      if (error) {
+        console.error('Error fetching medicos:', error);
+        toast.error('Erro ao carregar médicos');
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!profile?.organizacao_id,
+  });
 
   // Buscar pacientes do Supabase
   const { data: patients, isLoading } = useQuery({
@@ -50,41 +75,6 @@ const PacientesPage = () => {
 
       console.log('Patients data:', data)
       return data
-    }
-  });
-
-  // Mutation para criar paciente
-  const createPatientMutation = useMutation({
-    mutationFn: async (patientData: {
-      nome: string;
-      cpf: string;
-      email: string;
-      telefone: string;
-      data_nascimento?: string;
-      nina_status: boolean;
-      organizacao_id: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('pacientes')
-        .insert([patientData])
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error creating patient:', error)
-        throw error
-      }
-
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] })
-      setIsDialogOpen(false)
-      toast.success('Paciente cadastrado com sucesso!')
-    },
-    onError: (error: any) => {
-      console.error('Error creating patient:', error)
-      toast.error('Erro ao cadastrar paciente')
     }
   });
 
@@ -140,31 +130,6 @@ const PacientesPage = () => {
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    
-    if (!profile?.organizacao_id) {
-      toast.error('Não foi possível identificar a organização do usuário.');
-      return;
-    }
-
-    const patientData = {
-      nome: formData.get('name') as string,
-      cpf: formData.get('cpf') as string,
-      email: formData.get('email') as string,
-      telefone: (formData.get('phone') as string)?.replace(/\D/g, ''),
-      data_nascimento: formData.get('birthDate') as string || undefined,
-      nina_status: true,
-      organizacao_id: profile.organizacao_id,
-    };
-
-    console.log('Profile no cadastro:', profile);
-    console.log('Dados enviados para cadastro de paciente:', patientData);
-
-    createPatientMutation.mutate(patientData);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -200,13 +165,11 @@ const PacientesPage = () => {
       nome: formData.get('name') as string,
       cpf: formData.get('cpf') as string,
       email: formData.get('email') as string,
-      telefone: (formData.get('phone') as string)?.replace(/\D/g, ''),
+      telefone: (formData.get('phone') as string)?.replace(/\\D/g, ''),
       data_nascimento: formData.get('birthDate') as string || null,
       nina_status: true,
       organizacao_id: editingPatient.organizacao_id || profile.organizacao_id,
     };
-    console.log('Profile na edição:', profile);
-    console.log('Dados enviados para edição de paciente:', patientData);
     updatePatientMutation.mutate(patientData);
   };
 
@@ -280,48 +243,6 @@ const PacientesPage = () => {
         </div>
       </div>
       {/* Diálogos de cadastro/edição/exclusão permanecem */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cadastro de Paciente</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo <span className="text-red-500">*</span></Label>
-              <Input id="name" name="name" placeholder="Digite o nome completo" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cpf">CPF <span className="text-gray-400">(opcional)</span></Label>
-              <Input id="cpf" name="cpf" placeholder="000.000.000-00" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail <span className="text-gray-400">(opcional)</span></Label>
-              <Input id="email" name="email" type="email" placeholder="email@exemplo.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone <span className="text-red-500">*</span></Label>
-              <InputMaskPhone id="phone" name="phone" placeholder="(00) 00000-0000" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
-              <Input id="birthDate" name="birthDate" type="date" />
-            </div>
-            <div className="flex gap-2 pt-4">
-              <Button 
-                type="submit" 
-                className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
-                disabled={createPatientMutation.isPending}
-              >
-                {createPatientMutation.isPending ? 'Cadastrando...' : 'Cadastrar'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
       {deletingPatientId && (
         <Dialog open={!!deletingPatientId} onOpenChange={cancelDeletePatient}>
           <DialogContent className="max-w-sm">
@@ -345,49 +266,57 @@ const PacientesPage = () => {
         </Dialog>
       )}
 
-      <Dialog open={!!editingPatient} onOpenChange={() => setEditingPatient(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Paciente</DialogTitle>
-          </DialogHeader>
-          {editingPatient && (
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome Completo <span className="text-red-500">*</span></Label>
-                <Input id="edit-name" name="name" defaultValue={editingPatient.nome} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-cpf">CPF <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="edit-cpf" name="cpf" defaultValue={editingPatient.cpf} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">E-mail <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="edit-email" name="email" type="email" defaultValue={editingPatient.email} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefone <span className="text-red-500">*</span></Label>
-                <InputMaskPhone id="edit-phone" name="phone" defaultValue={editingPatient.telefone} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
-                <Input id="edit-birthDate" name="birthDate" type="date" defaultValue={editingPatient.data_nascimento ? editingPatient.data_nascimento.slice(0,10) : ''} />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
-                  disabled={updatePatientMutation.isPending}
-                >
-                  {updatePatientMutation.isPending ? 'Salvando...' : 'Salvar'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setEditingPatient(null)} disabled={updatePatientMutation.isPending}>
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Modal de Edição de Paciente */}
+      {editingPatient && (
+        <Dialog open={!!editingPatient} onOpenChange={() => setEditingPatient(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Paciente</DialogTitle>
+            </DialogHeader>
+            {editingPatient && (
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome Completo <span className="text-red-500">*</span></Label>
+                  <Input id="edit-name" name="name" defaultValue={editingPatient.nome} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cpf">CPF <span className="text-gray-400">(opcional)</span></Label>
+                  <Input id="edit-cpf" name="cpf" defaultValue={editingPatient.cpf} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">E-mail <span className="text-gray-400">(opcional)</span></Label>
+                  <Input id="edit-email" name="email" type="email" defaultValue={editingPatient.email} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Telefone <span className="text-red-500">*</span></Label>
+                  <InputMaskPhone id="edit-phone" name="phone" defaultValue={editingPatient.telefone} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-birthDate">Data de Nascimento <span className="text-gray-400">(opcional)</span></Label>
+                  <Input id="edit-birthDate" name="birthDate" type="date" defaultValue={editingPatient.data_nascimento ? editingPatient.data_nascimento.slice(0,10) : ''} />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    type="submit" 
+                    className="flex-1 bg-ninacare-primary hover:bg-ninacare-primary/90"
+                    disabled={updatePatientMutation.isPending}
+                  >
+                    {updatePatientMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setEditingPatient(null)} disabled={updatePatientMutation.isPending}>
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      <PatientDialog 
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </div>
   );
 };

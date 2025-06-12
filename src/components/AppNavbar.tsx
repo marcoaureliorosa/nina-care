@@ -10,6 +10,7 @@ const menu = [
   { title: "Conversas", url: "/conversas" },
   { title: "Pacientes", url: "/pacientes" },
   { title: "Agenda", url: "/agenda" },
+  { title: "Importações", url: "/importacoes" },
   { title: "Configurações", url: "/configuracoes" },
 ];
 
