@@ -25,9 +25,9 @@ const EngagementMetrics = ({
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="col-span-1 lg:col-span-2"
+        className="col-span-1 lg:col-span-2 h-full"
       >
-        <Card className="rounded-2xl border-0 bg-white/90 dark:bg-zinc-900/90 shadow-lg">
+        <Card className="rounded-2xl border-0 bg-white/90 dark:bg-zinc-900/90 shadow-lg h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-800 dark:text-white">
               <Clock className="h-6 w-6 text-ninacare-primary" />
@@ -81,7 +81,7 @@ const EngagementMetrics = ({
           </CardContent>
         </Card>
       </motion.div>
-      <div className="space-y-6">
+      <div className="space-y-6 h-full flex flex-col">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -89,6 +89,7 @@ const EngagementMetrics = ({
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
+                className="flex-grow"
               >
                 <MetricCard
                   title="Acionamentos Humanos (Hoje)"
@@ -105,18 +106,28 @@ const EngagementMetrics = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          <MetricCard
-            title="Pesquisa de Satisfação"
-            value={satisfactionClicks.toLocaleString()}
-            icon={ThumbsUp}
-            description="Cliques no link da pesquisa"
-          />
-        </motion.div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="flex-grow"
+              >
+                <MetricCard
+                  title="Pesquisa de Satisfação"
+                  value={satisfactionClicks.toLocaleString()}
+                  icon={ThumbsUp}
+                  description="Cliques no link da pesquisa"
+                />
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total de cliques recebidos no link da pesquisa de satisfação enviada aos pacientes.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   )

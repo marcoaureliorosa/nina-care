@@ -8,6 +8,7 @@ interface MainMetricsGridProps {
   patientsPercentage: number;
   activePatients: { count: number; percentage: number };
   ninaActivation: { count: number; percentage: number };
+  onEditProcedures: () => void;
 }
 
 const MainMetricsGrid = ({ 
@@ -15,15 +16,17 @@ const MainMetricsGrid = ({
   totalPatients, 
   patientsPercentage,
   activePatients, 
-  ninaActivation 
+  ninaActivation,
+  onEditProcedures
 }: MainMetricsGridProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 h-full">
       <MetricCard
         title="Procedimentos Realizados"
         value={procedures.toLocaleString()}
         icon={Activity}
         description="Total de procedimentos monitorados"
+        onEdit={onEditProcedures}
       />
       
       <TooltipProvider>

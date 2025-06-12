@@ -44,7 +44,7 @@ interface Organization {
   telefone?: string;
   endereco?: string;
   created_at: string;
-  procedures_performed?: string | null;
+  telefone_emergencia?: string | null;
 }
 
 const OrganizationManagement = () => {
@@ -60,7 +60,7 @@ const OrganizationManagement = () => {
     email: '',
     telefone: '',
     endereco: '',
-    procedures_performed: ''
+    telefone_emergencia: ''
   });
   const { toast } = useToast();
 
@@ -169,7 +169,7 @@ const OrganizationManagement = () => {
       email: org.email || '',
       telefone: org.telefone || '',
       endereco: org.endereco || '',
-      procedures_performed: org.procedures_performed || ''
+      telefone_emergencia: org.telefone_emergencia || ''
     });
     setDialogOpen(true);
   };
@@ -211,7 +211,7 @@ const OrganizationManagement = () => {
       email: '',
       telefone: '',
       endereco: '',
-      procedures_performed: ''
+      telefone_emergencia: ''
     });
     setEditingOrg(null);
   };
@@ -265,7 +265,9 @@ const OrganizationManagement = () => {
                   {editingOrg ? 'Editar Organização' : 'Nova Organização'}
                 </DialogTitle>
                 <DialogDescription>
-                  Preencha os dados da organização abaixo.
+                  {editingOrg
+                    ? 'Atualize os dados da organização.'
+                    : 'Preencha os dados da nova organização.'}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -306,6 +308,20 @@ const OrganizationManagement = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="telefone_emergencia" className="text-right flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    Emergência
+                  </Label>
+                  <Input
+                    id="telefone_emergencia"
+                    value={formData.telefone_emergencia}
+                    onChange={e => setFormData({ ...formData, telefone_emergencia: e.target.value })}
+                    className="col-span-3"
+                    placeholder="Telefone para contato da IA"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="endereco">Endereço</Label>
                   <Textarea
                     id="endereco"
@@ -313,19 +329,6 @@ const OrganizationManagement = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, endereco: e.target.value }))}
                     placeholder="Endereço completo"
                     rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="procedures_performed">Procedimentos Realizados</Label>
-                  <Input
-                    id="procedures_performed"
-                    name="procedures_performed"
-                    type="number"
-                    min="0"
-                    value={formData.procedures_performed}
-                    onChange={e => setFormData(prev => ({ ...prev, procedures_performed: e.target.value }))}
-                    placeholder="Quantidade de procedimentos realizados"
                   />
                 </div>
 
@@ -443,16 +446,6 @@ const OrganizationManagement = () => {
                       <span className="text-sm line-clamp-2">{org.endereco}</span>
                     </div>
                   )}
-                  
-                  <div className="flex items-start gap-3">
-                    <ClipboardList className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">Procedimentos:</span>
-                      <Badge variant={Number(org.procedures_performed) > 0 ? "default" : "outline"} className="px-3 py-1">
-                        {org.procedures_performed || '0'}
-                      </Badge>
-                    </div>
-                  </div>
                 </CardContent>
                 
                 <CardFooter className="p-6 pt-0 flex justify-between items-center">

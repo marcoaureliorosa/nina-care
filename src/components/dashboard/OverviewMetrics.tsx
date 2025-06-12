@@ -21,12 +21,14 @@ const OverviewMetrics = ({
       value: newPatientsMonthly,
       icon: <Users className="h-4 w-4 text-muted-foreground" />,
       description: "Pacientes cadastrados nos últimos 30 dias.",
+      tooltip: "Total de novos pacientes únicos cadastrados nos últimos 30 dias."
     },
     {
       title: "Consultas Agendadas (Hoje)",
       value: scheduledToday,
       icon: <Calendar className="h-4 w-4 text-muted-foreground" />,
       description: "Procedimentos marcados para hoje.",
+      tooltip: "Total de procedimentos agendados para a data de hoje."
     },
     {
       title: "Conversas Pendentes",
@@ -40,6 +42,7 @@ const OverviewMetrics = ({
       value: humanActivationsMonthly,
       icon: <Bot className="h-4 w-4 text-muted-foreground" />,
       description: "Intervenções manuais nos últimos 30 dias.",
+      tooltip: "Quantidade de vezes que a IA precisou de uma intervenção humana nos últimos 30 dias."
     },
   ];
 

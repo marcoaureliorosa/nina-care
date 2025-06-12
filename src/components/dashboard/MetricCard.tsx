@@ -1,7 +1,8 @@
 // Certifique-se de instalar o framer-motion: npm install framer-motion
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, Pencil } from "lucide-react"
 import { motion } from "framer-motion"
+import { Button } from '@/components/ui/button';
 
 interface MetricCardProps {
   title: string
@@ -10,6 +11,7 @@ interface MetricCardProps {
   icon: LucideIcon
   trend?: "up" | "down" | "neutral"
   description?: string
+  onEdit?: () => void
 }
 
 const trendColors = {
@@ -34,7 +36,8 @@ const MetricCard = ({
   percentage, 
   icon: Icon, 
   trend = "neutral",
-  description 
+  description,
+  onEdit
 }: MetricCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 24 }}
@@ -56,6 +59,11 @@ const MetricCard = ({
             {trendIcons[trend]}
             {percentage > 0 ? `+${percentage}%` : `${percentage}%`}
           </span>
+        )}
+        {onEdit && (
+          <Button variant="ghost" size="icon" onClick={onEdit} className="h-6 w-6">
+            <Pencil className="h-4 w-4 text-muted-foreground" />
+          </Button>
         )}
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0 flex-grow">

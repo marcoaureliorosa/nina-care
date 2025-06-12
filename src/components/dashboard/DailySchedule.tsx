@@ -16,7 +16,7 @@ interface DailyScheduleProps {
 
 const DailySchedule = ({ upcomingAppointments }: DailyScheduleProps) => {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Agenda do Dia</CardTitle>
         <CardDescription>Próximos 5 agendamentos de hoje.</CardDescription>
