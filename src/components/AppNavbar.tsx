@@ -11,6 +11,7 @@ const menu = [
   { title: "Pacientes", url: "/pacientes" },
   { title: "Agenda", url: "/agenda" },
   { title: "Importações", url: "/importacoes" },
+  { title: "Acompanhamentos", url: "/acompanhamentos" },
   { title: "Configurações", url: "/configuracoes" },
 ];
 

@@ -10,8 +10,9 @@ import ConfiguracoesPage from "../pages/ConfiguracoesPage";
 import ProfilePage from "../pages/ProfilePage";
 import AdminPage from "../pages/AdminPage";
 import NotFound from "../pages/NotFound";
-import ConversationDetail from "./conversations/ConversationDetail";
+import ConversationDetailPageWrapper from "./ConversationDetailPageWrapper";
 import ImportacoesPage from '../pages/ImportacoesPage';
+import FollowUpsPage from '../pages/FollowUpsPage';
 
 const AppLayout = () => {
   return (
@@ -22,10 +23,11 @@ const AppLayout = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/conversas" element={<ConversasPage />} />
-            <Route path="/conversas/:id" element={<ConversationDetail />} />
+            <Route path="/conversas/:id" element={<ConversationDetailPageWrapper />} />
             <Route path="/pacientes" element={<PacientesPage />} />
             <Route path="/agenda" element={<AgendaPage />} />
             <Route path="/importacoes" element={<ImportacoesPage />} />
+            <Route path="/acompanhamentos" element={<FollowUpsPage />} />
             <Route path="/configuracoes" element={<ConfiguracoesPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />
