@@ -14,6 +14,7 @@ import PatientsHeader from "@/components/patients/PatientsHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import PatientDialog from "@/components/patients/PatientDialog";
+import { Switch } from "@/components/ui/switch";
 
 interface Medico {
   id: string;
@@ -130,6 +131,31 @@ const PacientesPage = () => {
     }
   });
 
+  // Mutation para ativar/desativar a Nina
+  const toggleNinaStatusMutation = useMutation({
+    mutationFn: async ({ id, newStatus }: { id: string; newStatus: boolean }) => {
+      const { error } = await supabase
+        .from('pacientes')
+        .update({ nina_status: newStatus })
+        .eq('id', id);
+      if (error) {
+        console.error('Error updating Nina status:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      toast.success('Status da Nina atualizado!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar o status da Nina.');
+    }
+  });
+
+  const handleToggleNinaStatus = (patientId: string, currentStatus: boolean) => {
+    toggleNinaStatusMutation.mutate({ id: patientId, newStatus: !currentStatus });
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -209,9 +235,17 @@ const PacientesPage = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <span className="font-bold text-lg text-zinc-900 truncate block">{patient.nome}</span>
-                    <Badge className={`${patient.nina_status ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-zinc-200 text-zinc-600 border-zinc-300'} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none mt-1`}>
-                      {patient.nina_status ? 'Ativo' : 'Inativo'}
-                    </Badge>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Switch
+                        id={`nina-status-${patient.id}`}
+                        checked={patient.nina_status}
+                        onCheckedChange={() => handleToggleNinaStatus(patient.id, patient.nina_status)}
+                        aria-label="Ativar ou desativar Nina"
+                      />
+                      <Label htmlFor={`nina-status-${patient.id}`} className={patient.nina_status ? 'text-emerald-800' : 'text-zinc-600'}>
+                        {patient.nina_status ? 'Ativo' : 'Inativo'}
+                      </Label>
+                    </div>
                   </div>
                   {/* Ações rápidas */}
                   <div className="flex flex-col gap-2 items-end">

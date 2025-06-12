@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ConversationsHeader from "./conversations/ConversationsHeader";
 import ConversationsFilters from "./conversations/ConversationsFilters";
@@ -14,6 +14,7 @@ const Conversations = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   // Responsividade: detectar mobile
@@ -33,7 +34,22 @@ const Conversations = () => {
   }, [searchParams]);
 
   // Atualizar URL ao selecionar conversa
-  const handleSelectConversation = (id: string) => {
+  const handleSelectConversation = async (id: string) => {
+    // Primeiro, marca a conversa como lida no banco de dados
+    const { error } = await supabase
+      .from('conversas')
+      .update({ is_read: true })
+      .eq('id', id);
+
+    if (error) {
+      console.error("Erro ao marcar conversa como lida:", error);
+      // Mesmo com erro, continua a navegação para não bloquear o usuário
+    } else {
+      // Invalida a query para que a lista seja atualizada (remove o indicador de não lida)
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    }
+    
+    // Depois, atualiza a URL para abrir os detalhes
     setSearchParams({ ...Object.fromEntries(searchParams.entries()), id });
   };
 
