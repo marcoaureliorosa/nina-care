@@ -1,8 +1,15 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
-import { FollowUp } from '../types';
 
-export interface FollowUpWithPaciente extends FollowUp {
+export interface FollowUpWithPaciente {
+  id: number;
+  created_at: string | null;
+  dt_envio: string | null;
+  status: string;
+  tag: string;
+  user_number: string | null;
+  userid: string;
   pacientes: {
     nome: string;
   } | null;
@@ -20,7 +27,7 @@ const fetchFollowUps = async (pacienteId?: string): Promise<FollowUpWithPaciente
     .eq('status', 'pendente');
 
   if (pacienteId) {
-    query = query.eq('paciente_id', pacienteId);
+    query = query.eq('userid', pacienteId);
   }
   
   const { data, error } = await query.order('dt_envio', { ascending: true });
@@ -38,4 +45,4 @@ export const useFollowUps = (pacienteId?: string) => {
     queryKey: ['followUps', pacienteId],
     queryFn: () => fetchFollowUps(pacienteId),
   });
-}; 
+};

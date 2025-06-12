@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useWhatsApp } from "@/hooks/useWhatsApp";
-import { checkWhatsAppConfig } from "@/lib/whatsapp-api";
 import { 
   MessageCircle, 
   QrCode, 
@@ -21,54 +21,44 @@ const WhatsAppManagement = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const { useInstanceStatus, useQRCode, refreshQRCode, checkStatus } = useWhatsApp();
 
-  // Verificar configuração da API
-  const configCheck = checkWhatsAppConfig();
-
   // Buscar status da instância
   const statusQuery = useInstanceStatus();
   const qrQuery = useQRCode();
 
   const getStatusColor = (statusData: any) => {
-    // Verde se conectado
-    if (statusData?.data?.success === true) {
+    if (statusData?.data?.success === true || statusData?.connected === true) {
       return 'bg-green-100 text-green-800 border-green-200';
     }
 
-    // Vermelho se desconectado ou com erro
-    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.status === false) {
+    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.error) {
       return 'bg-red-100 text-red-800 border-red-200';
     }
 
-    // Cinza para outros casos
     return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const getStatusIcon = (statusData: any) => {
-    // Check verde se conectado
-    if (statusData?.data?.success === true) {
+    if (statusData?.data?.success === true || statusData?.connected === true) {
       return <CheckCircle2 className="w-4 h-4" />;
     }
 
-    // X vermelho se desconectado ou com erro
-    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.status === false) {
+    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.error) {
       return <XCircle className="w-4 h-4" />;
     }
 
-    // Alerta para outros casos
     return <AlertCircle className="w-4 h-4" />;
   };
 
   const getStatusText = (statusData: any) => {
-    // A fonte da verdade é a propriedade `success`
-    if (statusData?.data?.success === true) {
+    if (statusData?.data?.success === true || statusData?.connected === true) {
       return 'Conectado';
     }
 
-    // Se tem erro, mostrar o tipo de erro
     if (statusData?.data?.error) {
       switch (statusData.data.error.toLowerCase()) {
         case 'no session':
-          return 'Sessão não iniciada';
+        case 'no configuration':
+          return 'Não configurado';
         case 'disconnected':
           return 'Desconectado';
         default:
@@ -76,7 +66,10 @@ const WhatsAppManagement = () => {
       }
     }
 
-    // Status baseado no código de erro se existir
+    if (statusData?.error) {
+      return `Erro: ${statusData.error}`;
+    }
+
     if (statusData?.data?.code === 500) {
       return 'Desconectado (Erro 500)';
     }
@@ -91,20 +84,19 @@ const WhatsAppManagement = () => {
   const handleGenerateQR = async () => {
     try {
       setShowQRCode(true);
-      // Refresh do QR Code para buscar o novo código
       refreshQRCode();
       const result = await qrQuery.refetch();
       
       if (result.data?.data?.success) {
         toast({
           title: "QR Code gerado com sucesso!",
-          description: "Escaneie o código com seu WhatsApp para conectar. O status será atualizado automaticamente quando conectar.",
+          description: "Escaneie o código com seu WhatsApp para conectar.",
         });
       } else {
         toast({
           variant: "destructive",
           title: "Erro ao gerar QR Code",
-          description: result.data?.data?.message || "Erro desconhecido",
+          description: result.data?.data?.message || result.data?.error || "Erro desconhecido",
         });
       }
     } catch (error) {
@@ -128,7 +120,7 @@ const WhatsAppManagement = () => {
       } else {
         toast({
           title: "Status atualizado",
-          description: `Status atual: ${getStatusText(result.status)}`,
+          description: `Status atual: ${getStatusText(result)}`,
         });
       }
     } catch (error) {
@@ -140,36 +132,23 @@ const WhatsAppManagement = () => {
     }
   };
 
-  // Lógica corrigida: verificar se realmente está conectado
-  // A API retorna status: true mas data.success: false quando não conectado
-  const isConnected = statusQuery.data?.data?.success === true;
+  const isConnected = statusQuery.data?.data?.success === true || statusQuery.data?.connected === true;
 
-  // DEBUG: Adicionando logs detalhados para depuração
-  console.log('%c[DEBUG] WhatsApp Status Check', 'color: #1E90FF; font-weight: bold;', {
-    '1. Raw API Response': statusQuery.data,
-    '2. Is Loading': statusQuery.isLoading,
-    '3. Error State': statusQuery.error,
-    '4. Derived isConnected': isConnected,
-    '5. Condition (statusQuery.data?.data?.success === true)': statusQuery.data?.data?.success === true,
-    '6. Condition (!statusQuery.data?.data?.error)': !statusQuery.data?.data?.error,
-  });
+  // Check for configuration issues
+  const hasConfigurationError = statusQuery.data?.data?.error === 'no configuration' || 
+                                statusQuery.data?.error?.includes('Configuração do WhatsApp incompleta');
 
   return (
     <div className="space-y-6">
       {/* Configuration Warning */}
-      {!configCheck.isValid && (
+      {hasConfigurationError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-2">
-              <p className="font-medium">Configuração da API WhatsApp incompleta:</p>
-              <ul className="list-disc list-inside space-y-1">
-                {configCheck.issues.map((issue, index) => (
-                  <li key={index} className="text-sm">{issue}</li>
-                ))}
-              </ul>
+              <p className="font-medium">Configuração do WhatsApp incompleta</p>
               <p className="text-sm">
-                Configure as variáveis de ambiente no arquivo .env para usar esta funcionalidade.
+                Configure os secrets Z_API_TOKEN e Z_API_INSTANCE nas configurações do projeto Supabase para usar esta funcionalidade.
               </p>
             </div>
           </AlertDescription>
@@ -208,17 +187,7 @@ const WhatsAppManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {showQRCode && !isConnected ? (
-              <Alert>
-                <QrCode className="h-4 w-4" />
-                <AlertDescription>
-                  <p className="font-medium">Aguardando leitura do QR Code...</p>
-                  <p className="text-sm text-muted-foreground">
-                    Após escanear, clique em "Atualizar" para verificar a conexão.
-                  </p>
-                </AlertDescription>
-              </Alert>
-            ) : statusQuery.isLoading ? (
+            {statusQuery.isLoading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm text-muted-foreground">Verificando status...</span>
@@ -229,7 +198,7 @@ const WhatsAppManagement = () => {
                 <AlertDescription>
                   <div className="space-y-2">
                     <p className="font-medium">Não foi possível verificar o status</p>
-                    <p className="text-sm">Isso é normal se for a primeira vez. Tente gerar um QR Code para iniciar a conexão.</p>
+                    <p className="text-sm">Verifique a configuração ou tente novamente.</p>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -246,15 +215,6 @@ const WhatsAppManagement = () => {
                 )}
               </div>
             )}
-
-            {statusQuery.data?.error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {statusQuery.data.error}
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -262,20 +222,18 @@ const WhatsAppManagement = () => {
       {/* QR Code Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-full">
-                <QrCode className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Conexão WhatsApp</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {isConnected 
-                    ? "✅ Conexão ativa - Mensagens sendo enviadas automaticamente" 
-                    : "❌ Conecte seu WhatsApp escaneando o QR Code para ativar o envio de mensagens"
-                  }
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 p-2 rounded-full">
+              <QrCode className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Conexão WhatsApp</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {isConnected 
+                  ? "✅ Conexão ativa - Mensagens sendo enviadas automaticamente" 
+                  : "❌ Conecte seu WhatsApp escaneando o QR Code para ativar o envio de mensagens"
+                }
+              </p>
             </div>
           </div>
         </CardHeader>
@@ -288,15 +246,12 @@ const WhatsAppManagement = () => {
                   <div className="space-y-2">
                     <p className="font-medium">WhatsApp conectado com sucesso! ✅</p>
                     <p>O agente está ativo e pode enviar e receber mensagens automaticamente.</p>
-                    <p className="text-sm text-muted-foreground">
-                      Não é necessário gerar um novo QR Code enquanto a conexão estiver ativa.
-                    </p>
                   </div>
                 </AlertDescription>
               </Alert>
             ) : (
               <>
-                <Alert variant="destructive" className="mb-4">
+                <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-1">
@@ -309,7 +264,7 @@ const WhatsAppManagement = () => {
                 <div className="flex gap-2">
                   <Button 
                     onClick={handleGenerateQR}
-                    disabled={qrQuery.isFetching}
+                    disabled={qrQuery.isFetching || hasConfigurationError}
                     className="flex items-center gap-2"
                   >
                     {qrQuery.isFetching ? (
@@ -351,7 +306,7 @@ const WhatsAppManagement = () => {
                             className="max-w-[200px] max-h-[200px]"
                           />
                         </div>
-                                                  <Alert>
+                        <Alert>
                           <QrCode className="h-4 w-4" />
                           <AlertDescription>
                             <div className="space-y-2">
@@ -360,9 +315,6 @@ const WhatsAppManagement = () => {
                               <p>2. Vá em "Dispositivos conectados"</p>
                               <p>3. Toque em "Conectar um dispositivo"</p>
                               <p>4. Escaneie este QR Code</p>
-                              <p className="text-sm text-muted-foreground mt-2">
-                                ⏱️ O status será atualizado automaticamente quando você conectar
-                              </p>
                             </div>
                           </AlertDescription>
                         </Alert>
@@ -404,4 +356,4 @@ const WhatsAppManagement = () => {
   );
 };
 
-export default WhatsAppManagement; 
+export default WhatsAppManagement;

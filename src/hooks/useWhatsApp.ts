@@ -1,24 +1,19 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  generateWhatsAppQR, 
-  checkWhatsAppStatus, 
-  sendWhatsAppMessage,
-  disconnectWhatsApp,
-  checkWhatsAppConfig,
-  WhatsAppApiResponse,
-  WhatsAppConnectionStatus
-} from "@/lib/whatsapp-api";
+import { supabase } from "@/integrations/supabase/client";
 
-interface WhatsAppStatus {
-  status: string | number | boolean;
-  instance?: string;
+export interface WhatsAppConnectionStatus {
+  connected: boolean;
+  lastCheck: Date;
   error?: string;
   data?: {
+    success?: boolean;
     code?: number;
     error?: string;
-    success?: boolean;
   };
+  status?: string | number | boolean;
+  instance?: string;
 }
 
 interface WhatsAppQRCode {
@@ -35,19 +30,34 @@ export const useWhatsApp = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Hook para buscar o status da instância
+  // Hook para buscar o status da instância via Edge Function
   const useInstanceStatus = () => {
     return useQuery({
       queryKey: ['whatsapp-status', user?.id],
       queryFn: async (): Promise<WhatsAppConnectionStatus> => {
         try {
-          const data = await checkWhatsAppStatus();
-          return data;
+          const { data, error } = await supabase.functions.invoke('whatsapp-status');
+          
+          if (error) {
+            console.error('Erro ao buscar status do WhatsApp:', error);
+            return {
+              connected: false,
+              lastCheck: new Date(),
+              error: error.message || 'Erro desconhecido'
+            };
+          }
+          
+          return {
+            connected: data?.data?.success === true,
+            lastCheck: new Date(),
+            ...data
+          };
         } catch (error) {
           console.error('Erro ao buscar status do WhatsApp:', error);
           return {
             connected: false,
             lastCheck: new Date(),
+            error: error instanceof Error ? error.message : 'Erro desconhecido'
           };
         }
       },
@@ -56,18 +66,25 @@ export const useWhatsApp = () => {
     });
   };
 
-  // Hook para buscar o QR Code
+  // Hook para buscar o QR Code via Edge Function
   const useQRCode = () => {
     return useQuery({
       queryKey: ['whatsapp-qr', user?.id],
-      queryFn: async (): Promise<WhatsAppApiResponse> => {
+      queryFn: async (): Promise<WhatsAppQRCode> => {
         try {
-          const data = await generateWhatsAppQR();
+          const { data, error } = await supabase.functions.invoke('whatsapp-qr');
+          
+          if (error) {
+            console.error('Erro ao buscar QR Code do WhatsApp:', error);
+            return {
+              error: error.message || 'Erro desconhecido'
+            };
+          }
+          
           return data;
         } catch (error) {
           console.error('Erro ao buscar QR Code do WhatsApp:', error);
           return {
-            success: false,
             error: error instanceof Error ? error.message : 'Erro desconhecido'
           };
         }
@@ -82,12 +99,21 @@ export const useWhatsApp = () => {
     queryClient.invalidateQueries({ queryKey: ['whatsapp-qr'] });
   };
 
-  // Mutation para verificar status manualmente
+  // Mutation para verificar status manualmente via Edge Function
   const checkStatus = useMutation({
     mutationFn: async (): Promise<WhatsAppConnectionStatus> => {
       try {
-        const data = await checkWhatsAppStatus();
-        return data;
+        const { data, error } = await supabase.functions.invoke('whatsapp-status');
+        
+        if (error) {
+          throw new Error(error.message || 'Erro ao verificar status');
+        }
+        
+        return {
+          connected: data?.data?.success === true,
+          lastCheck: new Date(),
+          ...data
+        };
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Erro ao verificar status');
       }
@@ -98,46 +124,10 @@ export const useWhatsApp = () => {
     }
   });
 
-  // Mutation para enviar mensagem
-  const sendMessage = useMutation({
-    mutationFn: async ({ to, message }: { to: string; message: string }): Promise<WhatsAppApiResponse> => {
-      try {
-        const data = await sendWhatsAppMessage(to, message);
-        return data;
-      } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
-      }
-    }
-  });
-
-  // Mutation para desconectar
-  const disconnect = useMutation({
-    mutationFn: async (): Promise<WhatsAppApiResponse> => {
-      try {
-        const data = await disconnectWhatsApp();
-        return data;
-      } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Erro ao desconectar');
-      }
-    },
-    onSuccess: () => {
-      // Invalidar cache do status após desconectar
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
-    }
-  });
-
-  // Verificar configuração
-  const getConfig = () => {
-    return checkWhatsAppConfig();
-  };
-
   return {
     useInstanceStatus,
     useQRCode,
     refreshQRCode,
-    checkStatus,
-    sendMessage,
-    disconnect,
-    getConfig
+    checkStatus
   };
-}; 
+};

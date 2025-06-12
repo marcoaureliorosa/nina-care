@@ -164,7 +164,15 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
       if (!id) return null;
       const { data, error } = await supabase
         .from('conversas')
-        .select('id, status, pacientes:pacientes (nome, telefone, avatar_url), feedback')
+        .select(`
+          id, 
+          status, 
+          pacientes:pacientes (
+            nome, 
+            telefone
+          ), 
+          feedback
+        `)
         .eq('id', id)
         .single();
       if (error) throw error;
@@ -203,7 +211,10 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
 
   // Feedback: like/dislike
   useEffect(() => {
-    if (conversa?.feedback) setFeedback(conversa.feedback);
+    if (conversa?.feedback) {
+      const feedbackValue = conversa.feedback as "like" | "dislike";
+      setFeedback(feedbackValue);
+    }
   }, [conversa]);
 
   const handleFeedback = async (type: "like" | "dislike") => {
@@ -284,11 +295,7 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
         {conversa && (
           <>
             <Avatar className="h-12 w-12">
-              {conversa.pacientes?.avatar_url ? (
-                <AvatarImage src={conversa.pacientes.avatar_url} alt={conversa.pacientes.nome} />
-              ) : (
-                <AvatarFallback>{conversa.pacientes?.nome?.[0] || '?'}</AvatarFallback>
-              )}
+              <AvatarFallback>{conversa.pacientes?.nome?.[0] || '?'}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <span className="font-bold text-lg text-zinc-900">{conversa.pacientes?.nome || 'Paciente não identificado'}</span>
@@ -350,4 +357,4 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
   );
 };
 
-export default ConversationDetail; 
+export default ConversationDetail;

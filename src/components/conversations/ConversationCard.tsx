@@ -1,3 +1,4 @@
+
 import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,6 @@ interface ConversationCardProps {
     pacientes?: {
       nome?: string;
       telefone?: string;
-      avatar_url?: string;
     };
     is_priority: boolean;
     is_read: boolean;
@@ -23,9 +23,10 @@ interface ConversationCardProps {
   };
   onClick?: () => void;
   selected?: boolean;
+  compact?: boolean;
 }
 
-const ConversationCard = ({ conversation, onClick, selected }: ConversationCardProps) => {
+const ConversationCard = ({ conversation, onClick, selected, compact = false }: ConversationCardProps) => {
   const queryClient = useQueryClient();
 
   const mutationPriority = useMutation({
@@ -96,7 +97,8 @@ const ConversationCard = ({ conversation, onClick, selected }: ConversationCardP
       className={cn(
         "group relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden shadow-sm hover:shadow-md",
         selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200',
-        !conversation.is_read ? 'bg-ninacare-primary/5' : 'bg-white/90'
+        !conversation.is_read ? 'bg-ninacare-primary/5' : 'bg-white/90',
+        compact && "p-2 gap-2"
       )}
       tabIndex={0}
       onClick={onClick}
@@ -106,21 +108,23 @@ const ConversationCard = ({ conversation, onClick, selected }: ConversationCardP
         <div className="absolute left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-ninacare-primary" aria-label="Não lida"></div>
       )}
       
-      <Avatar className="h-11 w-11">
+      <Avatar className={cn("h-11 w-11", compact && "h-8 w-8")}>
         <AvatarFallback className="bg-ninacare-primary/20 text-ninacare-primary font-bold">{getInitials(conversation.pacientes?.nome)}</AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="font-bold text-base text-zinc-800 truncate">{conversation.pacientes?.nome || 'Paciente'}</span>
-            <span className="text-xs text-zinc-500">{formatTime(conversation.updated_at)}</span>
+            <span className={cn("font-bold text-base text-zinc-800 truncate", compact && "text-sm")}>{conversation.pacientes?.nome || 'Paciente'}</span>
+            <span className={cn("text-xs text-zinc-500", compact && "text-[10px]")}>{formatTime(conversation.updated_at)}</span>
           </div>
         </div>
         
-        <p className="text-sm text-zinc-600 truncate mt-1">
-          {conversation.ultima_mensagem || conversation.resumo_conversa || 'Nenhuma mensagem recente.'}
-        </p>
+        {!compact && (
+          <p className="text-sm text-zinc-600 truncate mt-1">
+            {conversation.ultima_mensagem || conversation.resumo_conversa || 'Nenhuma mensagem recente.'}
+          </p>
+        )}
 
         <div className="flex items-center gap-4 mt-2">
             <Badge className={`${getStatusColor(conversation.status)} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none`}>
@@ -139,7 +143,7 @@ const ConversationCard = ({ conversation, onClick, selected }: ConversationCardP
           aria-label={conversation.is_priority ? "Remover prioridade" : "Marcar como prioridade"}
           disabled={mutationPriority.isPending}
         >
-          <Star className={cn("w-5 h-5", conversation.is_priority && "fill-current")} />
+          <Star className={cn("w-5 h-5", conversation.is_priority && "fill-current", compact && "w-4 h-4")} />
         </button>
       </div>
     </div>
