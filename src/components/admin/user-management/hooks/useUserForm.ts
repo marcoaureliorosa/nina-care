@@ -227,6 +227,9 @@ export const useUserForm = (
     try {
       if (editingUser) {
         // ATUALIZAR USUÁRIO
+        console.log("Attempting to update user with ID:", editingUser.id);
+        console.log("Data for update:", finalFormData);
+
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -240,7 +243,23 @@ export const useUserForm = (
           })
           .eq('id', editingUser.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating user:", error);
+          throw error;
+        }
+
+        // Verificar se a atualização foi bem-sucedida
+        const { data: updatedUser, error: selectError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', editingUser.id)
+          .single();
+
+        if (selectError) {
+          console.error("Error fetching user after update:", selectError);
+        } else {
+          console.log("User data after update attempt:", updatedUser);
+        }
         
         toast({
           title: "Usuário atualizado",
