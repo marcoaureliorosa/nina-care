@@ -12,7 +12,7 @@ const FollowUpsHeader = () => {
         </Avatar>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-            Acompanhamentos
+            Acompanhamentos Programados
             <Badge className="ml-2 bg-white/20 text-white border-white/30" variant="secondary">
               Agendados
             </Badge>
@@ -21,7 +21,7 @@ const FollowUpsHeader = () => {
         </div>
       </div>
       <div className="mt-4 md:mt-0 text-right w-full md:w-auto">
-        <p className="text-base text-white/90 font-medium">Central de Acompanhamentos</p>
+        <p className="text-base text-white/90 font-medium">Central de Acompanhamentos Programados</p>
         <p className="text-xs text-white/70 mt-1">Touchpoints automáticos e programação de envios</p>
       </div>
     </div>

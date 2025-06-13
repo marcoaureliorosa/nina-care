@@ -104,33 +104,33 @@ const ConfiguracoesPage = () => {
                 
                 {/* Quick Access Cards */}
                 <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer group">
+                  <Card className="bg-muted/5 border-muted/30 opacity-60 cursor-not-allowed">
                     <CardContent className="flex items-center justify-between p-6">
                       <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Settings className="w-5 h-5 text-primary" />
+                        <div className="bg-muted/20 p-2 rounded-full">
+                          <Settings className="w-5 h-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Preferências</h3>
-                          <p className="text-sm text-muted-foreground">Personalize sua experiência</p>
+                          <h3 className="font-medium text-muted-foreground">Preferências</h3>
+                          <p className="text-sm text-muted-foreground/70">Em breve</p>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer group">
+                  <Card className="bg-muted/5 border-muted/30 opacity-60 cursor-not-allowed">
                     <CardContent className="flex items-center justify-between p-6">
                       <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <ShieldCheck className="w-5 h-5 text-primary" />
+                        <div className="bg-muted/20 p-2 rounded-full">
+                          <ShieldCheck className="w-5 h-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Segurança</h3>
-                          <p className="text-sm text-muted-foreground">Gerencie acesso e segurança</p>
+                          <h3 className="font-medium text-muted-foreground">Segurança</h3>
+                          <p className="text-sm text-muted-foreground/70">Em breve</p>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
                     </CardContent>
                   </Card>
                   
