@@ -47,7 +47,7 @@ export default function AppNavbar() {
     <header className="w-full bg-white shadow-lg border-0 rounded-2xl mt-2 mb-4 px-4 py-2 flex items-center justify-between">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2 font-bold text-ninacare-primary text-xl">
-        <span>NinaCare</span>
+        <span>Ninacare</span>
       </Link>
       {/* Navegação central (desktop) */}
       <nav className="hidden lg:flex flex-1 justify-center">
