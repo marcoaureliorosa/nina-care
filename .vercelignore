@@ -5,7 +5,5 @@ node_modules
 .cursor
 bun.lockb
 package-lock.json
-postcss.config.js
-tailwind.config.ts
 eslint.config.js
 components.json 
