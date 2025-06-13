@@ -97,7 +97,7 @@ const AgendaPage: FC = () => {
       ...procedure,
       date,
       time: time ? time.substring(0, 5) : '',
-      patient: { nome: procedure.patient },
+      patient: procedure.patient,
     };
     setEditingProcedure(procedureToEdit);
     setIsEditDialogOpen(true);
