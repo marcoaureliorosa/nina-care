@@ -14,6 +14,7 @@ import OrganizationManagement from '@/components/admin/OrganizationManagement';
 import UserManagement from '@/components/admin/UserManagement';
 import WhatsAppManagement from '@/components/whatsapp/WhatsAppManagement';
 import PendingInvitations from '@/components/admin/user-management/PendingInvitations';
+import SupportModal from '@/components/admin/SupportModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -133,20 +134,22 @@ const ConfiguracoesPage = () => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer group">
-                    <CardContent className="flex items-center justify-between p-6">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Info className="w-5 h-5 text-primary" />
+                  <SupportModal>
+                    <Card className="bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer group">
+                      <CardContent className="flex items-center justify-between p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/10 p-2 rounded-full">
+                            <Info className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">Suporte</h3>
+                            <p className="text-sm text-muted-foreground">Obtenha ajuda e suporte</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium">Suporte</h3>
-                          <p className="text-sm text-muted-foreground">Obtenha ajuda e suporte</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </CardContent>
-                  </Card>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </CardContent>
+                    </Card>
+                  </SupportModal>
                 </div>
               </TabsContent>
               
