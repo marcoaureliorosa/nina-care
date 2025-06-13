@@ -3,13 +3,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Download, File, FileSpreadsheet, UploadCloud, X } from "lucide-react";
+import { Download, File, FileSpreadsheet, Info, UploadCloud, X } from "lucide-react";
 import clsx from "clsx";
 import Papa from "papaparse";
 import { z } from "zod";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 interface BatchImportDialogProps {
   open: boolean;
@@ -109,8 +114,18 @@ export default function BatchImportDialog({ open, onOpenChange }: BatchImportDia
       "data_procedimento",
       "observacoes_procedimento",
     ];
-    
-    const csv = Papa.unparse([headers], { header: false });
+    const example = [
+      "Ex: Nome Sobrenome",
+      "email@exemplo.com",
+      "11987654321",
+      "12345678900",
+      "1990-05-20",
+      "insira-o-id-do-medico-aqui",
+      "2024-08-15 10:30:00",
+      "Primeira consulta",
+    ];
+
+    const csv = Papa.unparse([headers, example], { header: false });
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -218,6 +233,26 @@ export default function BatchImportDialog({ open, onOpenChange }: BatchImportDia
           <Download className="w-4 h-4" />
           Baixar modelo de CSV
         </Button>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Atenção aos Formatos!</AlertTitle>
+          <AlertDescription>
+            <ul className="list-disc pl-5 space-y-1 mt-2 text-sm">
+              <li>
+                <b>Datas:</b> Nascimento em <code>AAAA-MM-DD</code> e
+                Procedimento em <code>AAAA-MM-DD HH:mm:ss</code>.
+              </li>
+              <li>
+                <b>Telefone:</b> Apenas números, com DDD. Ex:{" "}
+                <code>11987654321</code>.
+              </li>
+              <li>
+                <b>ID do Médico:</b> Insira o identificador único do médico.
+              </li>
+            </ul>
+          </AlertDescription>
+        </Alert>
 
         {/* Drop zone */}
         <div
