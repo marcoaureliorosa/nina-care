@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ConversationCardProps {
   conversation: {
@@ -29,6 +30,7 @@ interface ConversationCardProps {
 
 const ConversationCard = ({ conversation, compact, onClick, selected }: ConversationCardProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isPriority, setIsPriority] = useState(conversation.is_priority);
   const [isRead, setIsRead] = useState(conversation.is_read);
   const [loadingPriority, setLoadingPriority] = useState(false);
@@ -39,9 +41,12 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
     setLoadingPriority(true);
     const { error } = await supabase
       .from('conversas')
-      .update({ is_priority: !isPriority })
+      .update({ is_priority: !conversation.is_priority })
       .eq('id', conversation.id);
-    if (!error) setIsPriority(!isPriority);
+    
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    }
     setLoadingPriority(false);
   };
 
@@ -119,12 +124,28 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
 
   return (
     <div 
-      className={`group relative flex items-stretch gap-4 p-6 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer bg-white/90 overflow-hidden ${selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200'}`}
+      className={`group relative flex items-stretch gap-4 p-4 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer overflow-hidden 
+        ${selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200'}
+        ${!conversation.is_read ? 'bg-ninacare-primary/5' : 'bg-white/90'}
+      `}
       tabIndex={0}
       onClick={onClick}
       aria-label={`Abrir conversa de ${conversation.pacientes?.nome || 'Paciente'}`}
       onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
     >
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <button
+          onClick={togglePriority}
+          className={`p-1.5 rounded-full transition-colors disabled:opacity-50
+            ${conversation.is_priority ? "text-yellow-400 hover:bg-yellow-100/50" : "text-zinc-400 hover:text-yellow-400 hover:bg-zinc-100"}
+          `}
+          aria-label={conversation.is_priority ? "Remover prioridade" : "Marcar como prioridade"}
+          disabled={loadingPriority}
+        >
+          <Star className={`w-5 h-5 ${conversation.is_priority ? 'fill-current' : ''}`} />
+        </button>
+      </div>
+
       {/* Avatar */}
       <Avatar className="h-12 w-12 shadow border-2 border-white">
         <AvatarFallback className="bg-ninacare-primary text-white text-lg font-bold">{getInitials(conversation.pacientes?.nome)}</AvatarFallback>
@@ -132,13 +153,12 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
       {/* Bloco principal */}
       <div className="flex flex-col flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-lg text-zinc-900 truncate">{conversation.pacientes?.nome || 'Paciente não identificado'}</span>
-          {conversation.is_priority && (
-            <Star className="w-4 h-4 text-yellow-400 ml-1" aria-label="Prioritária" />
-          )}
+          <span className={`text-lg text-zinc-900 truncate ${!conversation.is_read ? 'font-bold' : 'font-semibold'}`}>
+            {conversation.pacientes?.nome || 'Paciente não identificado'}
+          </span>
         </div>
         <p className="text-sm text-zinc-600 truncate mt-1">
-          {conversation.ultima_mensagem || conversation.resumo_conversa || 'Nenhuma mensagem recente.'}
+          {conversation.ultima_mensagem || ''}
         </p>
         {/* Rodapé do card */}
         <div className="flex items-center justify-between mt-3">
@@ -148,41 +168,6 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
           </Badge>
           <span className="text-xs text-zinc-500">{formatTime(conversation.timestamp_ultima_mensagem || conversation.updated_at)}</span>
         </div>
-      </div>
-      {/* Overlay de nova mensagem */}
-      {!isRead && (
-        <div className="absolute inset-0 bg-ninacare-primary/5 pointer-events-none">
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-ninacare-primary" aria-label="Não lida"></div>
-        </div>
-      )}
-      {/* Ações rápidas */}
-      <div className="absolute top-4 right-4 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={togglePriority}
-          className={`p-1.5 rounded-full transition-colors ${isPriority ? "text-yellow-400 hover:bg-yellow-100/50" : "text-zinc-400 hover:text-yellow-400 hover:bg-zinc-100"}`}
-          aria-label={isPriority ? "Remover prioridade" : "Marcar como prioridade"}
-          disabled={loadingPriority}
-        >
-          {isPriority ? <StarOff className="w-5 h-5" /> : <Star className="w-5 h-5" />}
-        </button>
-        {isRead ? (
-           <button
-             onClick={() => navigate(`/pacientes/${conversation.id}`)}
-             className="p-1.5 rounded-full text-zinc-400 hover:text-ninacare-primary hover:bg-zinc-100 transition-colors"
-             aria-label="Ver conversa"
-           >
-             <User className="w-5 h-5" />
-           </button>
-        ) : (
-          <button
-            onClick={markAsRead}
-            className="p-1.5 rounded-full text-zinc-400 hover:text-green-500 hover:bg-green-100/50 transition-colors"
-            aria-label="Marcar como lida"
-            disabled={loadingRead}
-          >
-            <CheckCircle className="w-5 h-5" />
-          </button>
-        )}
       </div>
     </div>
   );

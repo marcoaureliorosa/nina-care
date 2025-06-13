@@ -10,10 +10,16 @@ export const usePermissions = () => {
   const isSecretary = () => profile?.role === 'secretary';
   const isReceptionist = () => profile?.role === 'recepcionista';
 
-  const canManageUsers = () => isAdmin();
-  const canManageOrganization = () => isAdmin();
+  // Regras de permissão baseadas nos roles definidos:
+  // - Admin: pode fazer tudo, incluindo gerenciar organizações
+  // - Médico: pode fazer tudo exceto criar/excluir organizações
+  // - Equipe: pode fazer tudo exceto acessar configurações
+  
+  const canManageUsers = () => isAdmin() || isDoctor();
+  const canManageOrganization = () => isAdmin(); // Apenas admins podem criar/excluir organizações
+  const canAccessConfigurations = () => isAdmin() || isDoctor(); // Equipe não pode acessar configurações
   const canDeletePatients = () => isAdmin() || isDoctor() || isNurse();
-  const canManageDoctors = () => isAdmin();
+  const canManageDoctors = () => isAdmin() || isDoctor();
   const canManageProcedures = () => isAdmin() || isDoctor() || isNurse();
   const canViewReports = () => isAdmin() || isDoctor();
 
@@ -28,6 +34,7 @@ export const usePermissions = () => {
     isReceptionist,
     canManageUsers,
     canManageOrganization,
+    canAccessConfigurations,
     canDeletePatients,
     canManageDoctors,
     canManageProcedures,

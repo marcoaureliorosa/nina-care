@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ConversationsHeader from "./conversations/ConversationsHeader";
 import ConversationsFilters from "./conversations/ConversationsFilters";
@@ -15,6 +15,7 @@ const Conversations = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Responsividade: detectar mobile
   useEffect(() => {
@@ -26,30 +27,46 @@ const Conversations = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Sincronizar selectedConversationId com o parâmetro da URL
+  // Realtime subscription for conversations
+  useEffect(() => {
+    const channel = supabase.channel('realtime-conversations')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'conversas' },
+        (payload) => {
+          console.log('Realtime change received!', payload);
+          queryClient.invalidateQueries({ queryKey: ['conversations', searchTerm, statusFilter, extraFilter] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, searchTerm, statusFilter, extraFilter]);
+
+  // Sync selectedConversationId with URL parameter
   useEffect(() => {
     const id = searchParams.get("id");
     setSelectedConversationId(id);
   }, [searchParams]);
 
-  // Atualizar URL ao selecionar conversa
+  // Update URL on conversation selection
   const handleSelectConversation = (id: string) => {
     setSearchParams({ ...Object.fromEntries(searchParams.entries()), id });
   };
 
-  // Fechar aside/modal
+  // Close detail view
   const handleCloseDetail = () => {
     searchParams.delete("id");
     setSearchParams(Object.fromEntries(searchParams.entries()));
     setSelectedConversationId(null);
   };
 
-  // Buscar conversas do Supabase
+  // Fetch conversations from Supabase
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations', searchTerm, statusFilter, extraFilter],
     queryFn: async () => {
-      console.log('Fetching conversations...')
-      
       let query = supabase
         .from('conversas')
         .select(`
@@ -59,36 +76,36 @@ const Conversations = () => {
             telefone
           )
         `)
-        .order('updated_at', { ascending: false })
+        .order('is_read', { ascending: true })
+        .order('is_priority', { ascending: false })
+        .order('updated_at', { ascending: false });
 
       if (searchTerm) {
-        // Buscar por nome do paciente através do JOIN
-        query = query.or(`pacientes.nome.ilike.%${searchTerm}%`)
+        query = query.or(`pacientes.nome.ilike.%${searchTerm}%`);
       }
 
       if (statusFilter !== "all") {
-        query = query.eq('status', statusFilter)
+        query = query.eq('status', statusFilter);
       }
 
-      // Filtro extra
       if (extraFilter === "priority") {
-        query = query.eq('is_priority', true)
+        query = query.eq('is_priority', true);
       } else if (extraFilter === "read") {
-        query = query.eq('is_read', true)
+        query = query.eq('is_read', true);
       } else if (extraFilter === "unread") {
-        query = query.eq('is_read', false)
+        query = query.eq('is_read', false);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching conversations:', error)
-        return []
+        console.error('Error fetching conversations:', error);
+        throw new Error('Failed to fetch conversations');
       }
 
-      console.log('Conversations data:', data)
-      return data
-    }
+      return data;
+    },
+    // staleTime: 1000 * 60 * 5, // Optional: 5 minutes stale time
   });
 
   return (

@@ -20,18 +20,20 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
 )
 Input.displayName = "Input"
 
-export const InputMaskPhone = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<"input">>(
-  ({ ...props }, ref) => (
-    <InputMask
-      mask="(99) 99999-9999"
-      maskChar={null}
-      alwaysShowMask={false}
-      {...props}
-    >
-      {(inputProps: any) => <input ref={ref} {...inputProps} className={props.className} />}
-    </InputMask>
-  )
-)
+export const InputMaskPhone = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentPropsWithoutRef<"input">
+>((props, ref) => (
+  <InputMask mask="(99) 99999-9999" maskChar={null} {...props}>
+    {/*
+      The 'any' type is used here because the 'react-input-mask' library
+      does not provide a specific type for the props passed to its child component.
+    */}
+    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+    {/* @ts-ignore */}
+    {(inputProps: any) => <Input {...inputProps} ref={ref} />}
+  </InputMask>
+))
 InputMaskPhone.displayName = "InputMaskPhone"
 
 export { Input }

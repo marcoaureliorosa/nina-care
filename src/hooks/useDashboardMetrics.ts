@@ -147,7 +147,11 @@ export const useDashboardMetrics = () => {
         const created = new Date(msg.created_at);
         if (now.getTime() - created.getTime() < dias30) {
           if (msg.message && typeof msg.message === 'object' && msg.message.type === 'human') {
-            ativosSet.add(msg.conversa_id);
+            // Buscar o paciente_id através da conversa_id
+            const conversa = conversasData?.find(c => c.id === msg.conversa_id);
+            if (conversa) {
+              ativosSet.add(conversa.paciente_id);
+            }
           }
         }
       });
@@ -172,8 +176,8 @@ export const useDashboardMetrics = () => {
       }
       const responseRate24hPercentage = totalTouchpoints > 0 ? Math.round((respostas24h / totalTouchpoints) * 100) : 0;
 
-      // Contatos espontâneos: mensagem do paciente sem follow-up anterior nos últimos 24h
-      let espontaneos = 0;
+      // Contatos espontâneos: pacientes únicos que enviaram mensagem sem follow-up anterior nos últimos 24h
+      const pacientesComContatoEspontaneo = new Set();
       if (mensagens.length > 0 && followUps) {
         for (const msg of mensagens) {
           if (msg.message && msg.message.type === 'human') {
@@ -189,18 +193,19 @@ export const useDashboardMetrics = () => {
               }
             }
             if (!lastFollowup) {
-              espontaneos++;
+              pacientesComContatoEspontaneo.add(msg.userid);
             } else {
               const dtEnvio = new Date(lastFollowup.dt_envio);
               const diff = msgDate.getTime() - dtEnvio.getTime();
               if (diff > 24 * 60 * 60 * 1000) {
-                espontaneos++;
+                pacientesComContatoEspontaneo.add(msg.userid);
               }
             }
           }
         }
       }
-      const espontaneosPercentage = mensagens.length > 0 ? Math.round((espontaneos / mensagens.length) * 100) : 0;
+      const espontaneos = pacientesComContatoEspontaneo.size;
+      const espontaneosPercentage = pacientesCount && pacientesCount > 0 ? Math.round((espontaneos / pacientesCount) * 100) : 0;
 
       // Buscar acionamentos humanos vinculados às conversas da organização
       let humanActivationsCount = 0;

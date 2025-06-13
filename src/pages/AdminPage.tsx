@@ -12,7 +12,7 @@ import OrganizationSwitcher from '@/components/admin/OrganizationSwitcher';
 
 const AdminPage = () => {
   const { profile } = useAuth();
-  const { isAdmin, canManageUsers, canManageOrganization, userRole } = usePermissions();
+  const { isAdmin, isDoctor, canManageUsers, canManageOrganization, canAccessConfigurations, userRole } = usePermissions();
 
   if (!profile) {
     return (
@@ -26,7 +26,7 @@ const AdminPage = () => {
   }
 
   // Verificar se o usuário tem permissão para acessar a página de admin
-  if (!isAdmin()) {
+  if (!isAdmin() && !isDoctor()) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -34,7 +34,7 @@ const AdminPage = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h2>
           <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
           <p className="text-sm text-gray-500 mt-2">
-            Apenas administradores podem acessar o painel administrativo.
+            Apenas administradores e médicos podem acessar o painel administrativo.
           </p>
         </div>
       </div>
@@ -46,13 +46,22 @@ const AdminPage = () => {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
-          <p className="text-gray-600 mt-1">Gerencie usuários, organizações e configurações do sistema</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isAdmin() ? 'Painel Administrativo' : 'Painel de Gerenciamento'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isAdmin() 
+              ? 'Gerencie usuários, organizações e configurações do sistema'
+              : 'Gerencie usuários e configurações do sistema'
+            }
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <Badge className="bg-green-100 text-green-800">
             <Shield className="w-3 h-3 mr-1" />
-            {userRole === 'admin' ? 'Administrador' : userRole}
+            {userRole === 'admin' ? 'Administrador' : 
+             userRole === 'doctor' ? 'Médico' : 
+             userRole === 'recepcionista' ? 'Equipe' : userRole}
           </Badge>
           {canManageOrganization() && <OrganizationSwitcher />}
         </div>
@@ -80,10 +89,14 @@ const AdminPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {userRole === 'admin' ? 'Administrador' : userRole}
+              {userRole === 'admin' ? 'Administrador' : 
+               userRole === 'doctor' ? 'Médico' : 
+               userRole === 'recepcionista' ? 'Equipe' : userRole}
             </div>
             <p className="text-xs text-muted-foreground">
-              Acesso completo ao sistema
+              {userRole === 'admin' ? 'Acesso completo ao sistema' :
+               userRole === 'doctor' ? 'Acesso completo exceto organizações' :
+               'Acesso básico - sem configurações'}
             </p>
           </CardContent>
         </Card>
@@ -117,10 +130,12 @@ const AdminPage = () => {
               Organização
             </TabsTrigger>
           )}
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Configurações
-          </TabsTrigger>
+          {canAccessConfigurations() && (
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Configurações
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {canManageUsers() && (
@@ -155,21 +170,23 @@ const AdminPage = () => {
           </TabsContent>
         )}
 
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações do Sistema</CardTitle>
-              <CardDescription>
-                Configure preferências e parâmetros do sistema.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">
-                As configurações do sistema serão implementadas em breve.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {canAccessConfigurations() && (
+          <TabsContent value="settings" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações do Sistema</CardTitle>
+                <CardDescription>
+                  Configure preferências e parâmetros do sistema.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">
+                  As configurações do sistema serão implementadas em breve.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

@@ -29,7 +29,7 @@ import React from "react"
 
 // Menu items baseado em permissões
 const useMenuItems = () => {
-  const { isAdmin, canViewReports } = usePermissions();
+  const { isAdmin, isDoctor, canViewReports } = usePermissions();
 
   const items = [
     {
@@ -68,10 +68,10 @@ const useMenuItems = () => {
 
   const adminItems = [
     {
-      title: "Administração",
+      title: isAdmin() ? "Administração" : "Gerenciamento",
       url: "/admin",
       icon: Shield,
-      show: isAdmin(),
+      show: isAdmin() || isDoctor(),
     },
   ];
 
@@ -84,6 +84,7 @@ const useMenuItems = () => {
 export function AppSidebar() {
   const menuItems = useMenuItems();
   const { profile, user, signOut } = useAuth();
+  const { isAdmin } = usePermissions();
   const navigate = useNavigate();
 
   // Dados do usuário e organização
@@ -163,10 +164,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Menu Administrativo - apenas para admins */}
+        {/* Menu Administrativo - para admins e médicos */}
         {menuItems.admin.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupLabel>{isAdmin() ? "Administração" : "Gerenciamento"}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems.admin.map((item) => (

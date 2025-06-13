@@ -228,13 +228,14 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
     refetch();
   };
 
-  // Marcar como lida manualmente
-  const handleMarkAsRead = async () => {
+  // Marcar como NÂO lida manualmente
+  const handleMarkAsUnread = async () => {
     await supabase
       .from('conversas')
-      .update({ is_read: true })
+      .update({ is_read: false })
       .eq('id', id);
-    refetch();
+    queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    onClose();
   };
 
   const getRemetente = (msg: any) => {
@@ -305,30 +306,31 @@ const ConversationDetail = ({ id, onClose }: ConversationDetailProps) => {
               </div>
             </div>
             <div className="flex-1" />
-            {/* Botão marcar como lida */}
-            <button
-              className="ml-2 px-3 py-1 rounded-full text-xs font-semibold border border-ninacare-primary text-ninacare-primary bg-white hover:bg-ninacare-primary/10 transition"
-              onClick={handleMarkAsRead}
-              aria-label="Marcar como lida"
-            >
-              Marcar como lida
-            </button>
             {/* Like/Dislike */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleFeedback('like')}
+                disabled={loadingFeedback || feedback === 'like'}
+                className={`p-2 rounded-full transition-colors ${feedback === 'like' ? 'bg-green-100 text-green-600' : 'hover:bg-gray-100'}`}
+              >
+                <ThumbsUp className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handleFeedback('dislike')}
+                disabled={loadingFeedback || feedback === 'dislike'}
+                className={`p-2 rounded-full transition-colors ${feedback === 'dislike' ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
+              >
+                <ThumbsDown className="w-5 h-5" />
+              </button>
+            </div>
             <button
-              className={`ml-2 p-2 rounded-full border ${feedback === 'like' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-white border-zinc-200 text-zinc-400 hover:bg-green-50'} transition`}
-              onClick={() => handleFeedback('like')}
-              aria-label="Curtir conversa"
-              disabled={loadingFeedback}
+              onClick={handleMarkAsUnread}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-ninacare-primary text-white hover:bg-ninacare-primary/90 transition-colors"
             >
-              <ThumbsUp className="w-5 h-5" />
+              Marcar como não lida
             </button>
-            <button
-              className={`ml-2 p-2 rounded-full border ${feedback === 'dislike' ? 'bg-red-100 border-red-400 text-red-700' : 'bg-white border-zinc-200 text-zinc-400 hover:bg-red-50'} transition`}
-              onClick={() => handleFeedback('dislike')}
-              aria-label="Não curtir conversa"
-              disabled={loadingFeedback}
-            >
-              <ThumbsDown className="w-5 h-5" />
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <X className="w-6 h-6" />
             </button>
           </>
         )}

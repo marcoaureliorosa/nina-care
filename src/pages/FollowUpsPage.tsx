@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import FollowUpsTable from '../components/follow-ups/FollowUpsTable';
+import FollowUpsHeader from '../components/follow-ups/FollowUpsHeader';
 import { usePacientesList } from '../hooks/usePacientesList';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
@@ -9,35 +10,40 @@ const FollowUpsPage = () => {
   const { data: pacientes, isLoading: isLoadingPacientes } = usePacientesList();
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-2xl font-bold">Acompanhamentos Agendados</h1>
-          <p className="text-gray-600">
-            Filtre por paciente ou veja todos os envios programados.
-          </p>
+    <div className="w-full min-h-[calc(100vh-80px)] flex flex-col bg-zinc-50">
+      <div className="w-full flex flex-col max-w-7xl mx-auto">
+        <div className="w-full pt-8 pb-4">
+          <FollowUpsHeader />
         </div>
-        <div className="w-64">
-          <Label htmlFor="paciente-filter">Filtrar por Paciente</Label>
-          <Select
-            onValueChange={(value) => setSelectedPaciente(value === 'all' ? undefined : value)}
-            defaultValue="all"
-          >
-            <SelectTrigger id="paciente-filter">
-              <SelectValue placeholder="Selecione um paciente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Pacientes</SelectItem>
-              {!isLoadingPacientes && pacientes && pacientes.map((paciente) => (
-                <SelectItem key={paciente.id} value={paciente.id}>
-                  {paciente.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        
+        <div className="w-full flex flex-wrap gap-3 items-center bg-white/80 rounded-xl shadow p-4 md:p-6 mb-6">
+          <div className="flex-1 min-w-[220px]">
+            <Label htmlFor="paciente-filter" className="text-sm font-medium text-zinc-700 mb-2 block">
+              Filtrar por Paciente
+            </Label>
+            <Select
+              onValueChange={(value) => setSelectedPaciente(value === 'all' ? undefined : value)}
+              defaultValue="all"
+            >
+              <SelectTrigger id="paciente-filter" className="h-11 rounded-lg border border-zinc-200 bg-white/90 shadow-sm focus:ring-2 focus:ring-ninacare-primary">
+                <SelectValue placeholder="Selecione um paciente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Pacientes</SelectItem>
+                {!isLoadingPacientes && pacientes && pacientes.map((paciente) => (
+                  <SelectItem key={paciente.id} value={paciente.id}>
+                    {paciente.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="w-full flex-1">
+          <FollowUpsTable pacienteId={selectedPaciente} />
         </div>
       </div>
-      <FollowUpsTable pacienteId={selectedPaciente} />
     </div>
   );
 };

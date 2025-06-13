@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,9 @@ import {
   CheckCircle2, 
   XCircle, 
   AlertCircle,
-  Loader2
+  Loader2,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,61 +26,70 @@ const WhatsAppManagement = () => {
   const statusQuery = useInstanceStatus();
   const qrQuery = useQRCode();
 
-  const getStatusColor = (statusData: any) => {
-    if (statusData?.data?.success === true || statusData?.connected === true) {
-      return 'bg-green-100 text-green-800 border-green-200';
+  const getStatusInfo = (statusData: any) => {
+    // Verificar se há erro de configuração
+    if (statusData?.data?.error === 'no configuration' || 
+        statusData?.error?.includes('Configuração do WhatsApp incompleta') ||
+        statusData?.message?.includes('Configure WHATSAPP_API_TOKEN')) {
+      return {
+        color: 'bg-amber-100 text-amber-800 border-amber-200',
+        icon: <AlertCircle className="w-4 h-4" />,
+        text: 'Não Configurado',
+        isConfigError: true
+      };
     }
 
-    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.error) {
-      return 'bg-red-100 text-red-800 border-red-200';
+    // Verificar se está conectado
+    if (statusData?.data?.success === true && statusData?.data?.connected === true) {
+      return {
+        color: 'bg-green-100 text-green-800 border-green-200',
+        icon: <CheckCircle2 className="w-4 h-4" />,
+        text: 'Conectado',
+        isConnected: true
+      };
     }
 
-    return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  const getStatusIcon = (statusData: any) => {
-    if (statusData?.data?.success === true || statusData?.connected === true) {
-      return <CheckCircle2 className="w-4 h-4" />;
+    // Verificar se há erro de serviço
+    if (statusData?.data?.error === 'service unavailable' || 
+        statusData?.error?.includes('temporariamente indisponível')) {
+      return {
+        color: 'bg-orange-100 text-orange-800 border-orange-200',
+        icon: <WifiOff className="w-4 h-4" />,
+        text: 'Serviço Indisponível',
+        isServiceError: true
+      };
     }
 
-    if (statusData?.data?.error || statusData?.data?.code === 500 || statusData?.error) {
-      return <XCircle className="w-4 h-4" />;
+    // Verificar se está desconectado
+    if (statusData?.data?.connected === false || statusData?.data?.success === false) {
+      return {
+        color: 'bg-red-100 text-red-800 border-red-200',
+        icon: <XCircle className="w-4 h-4" />,
+        text: 'Desconectado',
+        isDisconnected: true
+      };
     }
 
-    return <AlertCircle className="w-4 h-4" />;
-  };
-
-  const getStatusText = (statusData: any) => {
-    if (statusData?.data?.success === true || statusData?.connected === true) {
-      return 'Conectado';
-    }
-
-    if (statusData?.data?.error) {
-      switch (statusData.data.error.toLowerCase()) {
-        case 'no session':
-        case 'no configuration':
-          return 'Não configurado';
-        case 'disconnected':
-          return 'Desconectado';
-        default:
-          return `Erro: ${statusData.data.error}`;
-      }
-    }
-
-    if (statusData?.error) {
-      return `Erro: ${statusData.error}`;
-    }
-
-    if (statusData?.data?.code === 500) {
-      return 'Desconectado (Erro 500)';
-    }
-
+    // Estado de carregamento
     if (statusQuery.isLoading) {
-      return 'Verificando...';
+      return {
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: <Loader2 className="w-4 h-4 animate-spin" />,
+        text: 'Verificando...',
+        isLoading: true
+      };
     }
 
-    return 'Status Indefinido';
+    // Estado padrão
+    return {
+      color: 'bg-gray-100 text-gray-800 border-gray-200',
+      icon: <AlertCircle className="w-4 h-4" />,
+      text: 'Status Indefinido',
+      isUnknown: true
+    };
   };
+
+  const statusInfo = getStatusInfo(statusQuery.data);
 
   const handleGenerateQR = async () => {
     try {
@@ -87,17 +97,23 @@ const WhatsAppManagement = () => {
       refreshQRCode();
       const result = await qrQuery.refetch();
       
-      if (result.data?.data?.success) {
+      if (result.data?.data?.success && result.data?.data?.qrcode) {
         toast({
           title: "QR Code gerado com sucesso!",
           description: "Escaneie o código com seu WhatsApp para conectar.",
         });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro ao gerar QR Code",
-          description: result.data?.data?.message || result.data?.error || "Erro desconhecido",
-        });
+             } else if (result.data?.error?.includes('no configuration')) {
+         toast({
+           variant: "destructive",
+           title: "Configuração necessária",
+           description: "Configure o token do WhatsApp nas configurações do Supabase.",
+         });
+       } else {
+         toast({
+           variant: "destructive",
+           title: "Erro ao gerar QR Code",
+           description: result.data?.error || "Erro desconhecido",
+         });
       }
     } catch (error) {
       toast({
@@ -118,9 +134,10 @@ const WhatsAppManagement = () => {
           description: result.error,
         });
       } else {
+        const statusInfo = getStatusInfo(result);
         toast({
           title: "Status atualizado",
-          description: `Status atual: ${getStatusText(result)}`,
+          description: `Status atual: ${statusInfo.text}`,
         });
       }
     } catch (error) {
@@ -132,23 +149,39 @@ const WhatsAppManagement = () => {
     }
   };
 
-  const isConnected = statusQuery.data?.data?.success === true || statusQuery.data?.connected === true;
-
-  // Check for configuration issues
-  const hasConfigurationError = statusQuery.data?.data?.error === 'no configuration' || 
-                                statusQuery.data?.error?.includes('Configuração do WhatsApp incompleta');
-
   return (
     <div className="space-y-6">
       {/* Configuration Warning */}
-      {hasConfigurationError && (
+      {statusInfo.isConfigError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">Configuração do WhatsApp incompleta</p>
               <p className="text-sm">
-                Configure os secrets Z_API_TOKEN e Z_API_INSTANCE nas configurações do projeto Supabase para usar esta funcionalidade.
+                Configure os secrets WHATSAPP_API_TOKEN e WHATSAPP_INSTANCE_ID nas configurações do projeto Supabase para usar esta funcionalidade.
+              </p>
+              <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                <p className="text-xs font-mono">
+                  1. Acesse: Supabase Dashboard → Settings → Edge Functions → Secrets<br/>
+                  2. Adicione: WHATSAPP_API_TOKEN = seu_token_aqui<br/>
+                  3. Adicione: WHATSAPP_INSTANCE_ID = sua_instancia_aqui
+                </p>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Service Error Warning */}
+      {statusInfo.isServiceError && (
+        <Alert>
+          <WifiOff className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Serviço temporariamente indisponível</p>
+              <p className="text-sm">
+                Não foi possível conectar com o serviço do WhatsApp. Tente novamente em alguns minutos.
               </p>
             </div>
           </AlertDescription>
@@ -174,7 +207,7 @@ const WhatsAppManagement = () => {
               variant="outline" 
               size="sm"
               onClick={handleCheckStatus}
-              disabled={checkStatus.isPending}
+              disabled={checkStatus.isPending || statusInfo.isConfigError}
             >
               {checkStatus.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -187,32 +220,27 @@ const WhatsAppManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {statusQuery.isLoading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">Verificando status...</span>
-              </div>
-            ) : statusQuery.error ? (
+            {statusQuery.error ? (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <div className="space-y-2">
-                    <p className="font-medium">Não foi possível verificar o status</p>
+                    <p className="font-medium">Erro ao verificar status</p>
                     <p className="text-sm">Verifique a configuração ou tente novamente.</p>
                   </div>
                 </AlertDescription>
               </Alert>
             ) : (
               <div className="flex items-center gap-4">
-                <Badge className={getStatusColor(statusQuery.data)}>
-                  {getStatusIcon(statusQuery.data)}
-                  <span className="ml-2">{getStatusText(statusQuery.data)}</span>
+                <Badge className={statusInfo.color}>
+                  {statusInfo.icon}
+                  <span className="ml-2">{statusInfo.text}</span>
                 </Badge>
-                {statusQuery.data?.instance && (
-                  <span className="text-sm text-muted-foreground">
-                    Instância: {statusQuery.data.instance}
-                  </span>
-                )}
+                                 {statusQuery.data?.instance && (
+                   <span className="text-sm text-muted-foreground">
+                     Instância: {statusQuery.data.instance}
+                   </span>
+                 )}
               </div>
             )}
           </div>
@@ -229,7 +257,7 @@ const WhatsAppManagement = () => {
             <div>
               <CardTitle className="text-lg">Conexão WhatsApp</CardTitle>
               <p className="text-sm text-muted-foreground">
-                {isConnected 
+                {statusInfo.isConnected 
                   ? "✅ Conexão ativa - Mensagens sendo enviadas automaticamente" 
                   : "❌ Conecte seu WhatsApp escaneando o QR Code para ativar o envio de mensagens"
                 }
@@ -239,7 +267,7 @@ const WhatsAppManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {isConnected ? (
+            {statusInfo.isConnected ? (
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertDescription>
@@ -264,7 +292,7 @@ const WhatsAppManagement = () => {
                 <div className="flex gap-2">
                   <Button 
                     onClick={handleGenerateQR}
-                    disabled={qrQuery.isFetching || hasConfigurationError}
+                    disabled={qrQuery.isFetching || statusInfo.isConfigError}
                     className="flex items-center gap-2"
                   >
                     {qrQuery.isFetching ? (
@@ -276,7 +304,7 @@ const WhatsAppManagement = () => {
                   </Button>
                 </div>
 
-                {showQRCode && !isConnected && (
+                {showQRCode && !statusInfo.isConnected && (
                   <div className="space-y-4 pt-4">
                     {qrQuery.isLoading ? (
                       <div className="flex items-center justify-center p-8">
@@ -319,14 +347,14 @@ const WhatsAppManagement = () => {
                           </AlertDescription>
                         </Alert>
                       </div>
-                    ) : qrQuery.data ? (
+                    ) : (
                       <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                           QR Code não encontrado na resposta da API. Tente novamente.
                         </AlertDescription>
                       </Alert>
-                    ) : null}
+                    )}
                   </div>
                 )}
               </>

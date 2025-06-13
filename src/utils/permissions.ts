@@ -32,7 +32,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionConfig> = {
   },
   doctor: {
     canManageOrganizations: false,
-    canAccessConfigurations: false,
+    canAccessConfigurations: true,
     canManageUsers: true,
     canViewReports: true,
     canManagePatients: true,
@@ -40,7 +40,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionConfig> = {
     canManageConversations: true,
     canManageDoctors: true,
     roleDisplayName: 'Médico',
-    roleDescription: 'Acesso completo exceto organizações'
+    roleDescription: 'Acesso completo exceto criar/excluir organizações'
   },
   nurse: {
     canManageOrganizations: false,
@@ -111,7 +111,7 @@ export const ROLE_OPTIONS = [
   {
     value: 'doctor',
     label: 'Médico', 
-    description: 'Acesso completo exceto organizações',
+    description: 'Acesso completo exceto criar/excluir organizações',
     canManageOrg: false
   },
   {

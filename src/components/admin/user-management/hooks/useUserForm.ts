@@ -62,12 +62,16 @@ export const useUserForm = (
   });
 
   // Atualizar automaticamente can_manage_organizations baseado no role
+  const getCanManageOrganizations = (role: string): boolean => {
+    // Apenas admins podem gerenciar organizações
+    return role === 'admin';
+  };
+
   const handleRoleChange = (newRole: string) => {
-    const roleOption = ROLE_OPTIONS.find(r => r.value === newRole);
     setFormData(prev => ({
       ...prev,
       role: newRole,
-      can_manage_organizations: roleOption?.canManageOrg || false
+      can_manage_organizations: getCanManageOrganizations(newRole)
     }));
   };
 
@@ -81,16 +85,25 @@ export const useUserForm = (
     }
   }, [profile?.organizacao_id]);
 
+  // Atualizar can_manage_organizations automaticamente quando o role mudar
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      can_manage_organizations: getCanManageOrganizations(prev.role)
+    }));
+  }, [formData.role]);
+
   const resetForm = () => {
+    const defaultRole = 'recepcionista';
     setFormData({
       nome: '',
       email: '',
       telefone: '',
-      role: 'recepcionista',
+      role: defaultRole,
       organizacao_id: profile?.organizacao_id || '',
       is_active: true,
       avatar_url: '',
-      can_manage_organizations: false
+      can_manage_organizations: getCanManageOrganizations(defaultRole)
     });
     setEditingUser(null);
   };
@@ -98,15 +111,16 @@ export const useUserForm = (
   // Função para abrir o dialog de novo usuário
   const openNewUserDialog = () => {
     setEditingUser(null);
+    const defaultRole = 'recepcionista';
     setFormData({
       nome: '',
       email: '',
       telefone: '',
-      role: 'recepcionista',
+      role: defaultRole,
       organizacao_id: profile?.organizacao_id || '',
       is_active: true,
       avatar_url: '',
-      can_manage_organizations: false
+      can_manage_organizations: getCanManageOrganizations(defaultRole)
     });
     setDialogOpen(true);
   };
@@ -121,7 +135,7 @@ export const useUserForm = (
       organizacao_id: user.organizacao_id,
       is_active: user.is_active,
       avatar_url: user.avatar_url || '',
-      can_manage_organizations: user.can_manage_organizations || false
+      can_manage_organizations: getCanManageOrganizations(user.role)
     });
     setDialogOpen(true);
   };

@@ -198,19 +198,7 @@ const UserFormDialog = ({
             />
           </div>
 
-          <div className="flex items-center justify-between space-x-2">
-            <div className="space-y-0.5">
-              <Label htmlFor="can_manage_organizations">Gerenciar Organizações</Label>
-              <div className="text-[0.8rem] text-muted-foreground">
-                Permite criar e gerenciar organizações
-              </div>
-            </div>
-            <Switch
-              id="can_manage_organizations"
-              checked={formData.can_manage_organizations || false}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, can_manage_organizations: checked }))}
-            />
-          </div>
+
 
           <div className="space-y-4 pt-4">
             <div className="flex gap-2">
