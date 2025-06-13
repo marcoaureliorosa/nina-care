@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, Phone } from "lucide-react";
-=======
 import { MessageCircle, AlertCircle, CheckCircle, Clock, Star, StarOff, User, Phone, MessageSquare } from "lucide-react";
->>>>>>> parent of 79ea50e (v.0.7)
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -30,20 +25,14 @@ interface ConversationCardProps {
   compact?: boolean;
   onClick?: () => void;
   selected?: boolean;
-  compact?: boolean;
 }
 
-<<<<<<< HEAD
-const ConversationCard = ({ conversation, onClick, selected, compact = false }: ConversationCardProps) => {
-  const queryClient = useQueryClient();
-=======
 const ConversationCard = ({ conversation, compact, onClick, selected }: ConversationCardProps) => {
   const navigate = useNavigate();
   const [isPriority, setIsPriority] = useState(conversation.is_priority);
   const [isRead, setIsRead] = useState(conversation.is_read);
   const [loadingPriority, setLoadingPriority] = useState(false);
   const [loadingRead, setLoadingRead] = useState(false);
->>>>>>> parent of 79ea50e (v.0.7)
 
   const togglePriority = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -130,64 +119,12 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
 
   return (
     <div 
-<<<<<<< HEAD
-      className={cn(
-        "group relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden shadow-sm hover:shadow-md",
-        selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200',
-        !conversation.is_read ? 'bg-ninacare-primary/5' : 'bg-white/90',
-        compact && "p-2 gap-2"
-      )}
-=======
       className={`group relative flex items-stretch gap-4 p-6 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer bg-white/90 overflow-hidden ${selected ? 'ring-2 ring-ninacare-primary/60 border-ninacare-primary/40' : 'border-zinc-200'}`}
->>>>>>> parent of 79ea50e (v.0.7)
       tabIndex={0}
       onClick={onClick}
       aria-label={`Abrir conversa de ${conversation.pacientes?.nome || 'Paciente'}`}
       onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
     >
-<<<<<<< HEAD
-      {!conversation.is_read && (
-        <div className="absolute left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-ninacare-primary" aria-label="Não lida"></div>
-      )}
-      
-      <Avatar className={cn("h-11 w-11", compact && "h-8 w-8")}>
-        <AvatarFallback className="bg-ninacare-primary/20 text-ninacare-primary font-bold">{getInitials(conversation.pacientes?.nome)}</AvatarFallback>
-      </Avatar>
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className={cn("font-bold text-base text-zinc-800 truncate", compact && "text-sm")}>{conversation.pacientes?.nome || 'Paciente'}</span>
-            <span className={cn("text-xs text-zinc-500", compact && "text-[10px]")}>{formatTime(conversation.updated_at)}</span>
-          </div>
-        </div>
-        
-        {!compact && (
-          <p className="text-sm text-zinc-600 truncate mt-1">
-            {conversation.ultima_mensagem || conversation.resumo_conversa || 'Nenhuma mensagem recente.'}
-          </p>
-        )}
-
-        <div className="flex items-center gap-4 mt-2">
-            <Badge className={`${getStatusColor(conversation.status)} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none`}>
-              {getStatusLabel(conversation.status)}
-            </Badge>
-        </div>
-      </div>
-      
-      <div className="absolute top-3 right-3">
-        <button
-          onClick={handleTogglePriority}
-          className={cn(
-            "p-1 rounded-full transition-colors",
-            conversation.is_priority ? "text-yellow-400 hover:text-yellow-500" : "text-zinc-300 hover:text-yellow-400"
-          )}
-          aria-label={conversation.is_priority ? "Remover prioridade" : "Marcar como prioridade"}
-          disabled={mutationPriority.isPending}
-        >
-          <Star className={cn("w-5 h-5", conversation.is_priority && "fill-current", compact && "w-4 h-4")} />
-        </button>
-=======
       {/* Avatar */}
       <Avatar className="h-12 w-12 shadow border-2 border-white">
         <AvatarFallback className="bg-ninacare-primary text-white text-lg font-bold">{getInitials(conversation.pacientes?.nome)}</AvatarFallback>
@@ -200,27 +137,52 @@ const ConversationCard = ({ conversation, compact, onClick, selected }: Conversa
             <Star className="w-4 h-4 text-yellow-400 ml-1" aria-label="Prioritária" />
           )}
         </div>
-        {/* Badge de status sempre abaixo do nome */}
-        <div className="mt-1 mb-1">
-          <Badge className={`${getStatusColor(conversation.status)} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none`}>{getStatusLabel(conversation.status)}</Badge>
+        <p className="text-sm text-zinc-600 truncate mt-1">
+          {conversation.ultima_mensagem || conversation.resumo_conversa || 'Nenhuma mensagem recente.'}
+        </p>
+        {/* Rodapé do card */}
+        <div className="flex items-center justify-between mt-3">
+          <Badge className={`${getStatusColor(conversation.status)} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none`}>
+            {getStatusIcon(conversation.status)}
+            <span className="ml-1.5">{getStatusLabel(conversation.status)}</span>
+          </Badge>
+          <span className="text-xs text-zinc-500">{formatTime(conversation.timestamp_ultima_mensagem || conversation.updated_at)}</span>
         </div>
-        <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
-          <Phone className="w-4 h-4" />
-          <span className="truncate">{conversation.pacientes?.telefone || ''}</span>
-        </div>
-        {/* Resumo em balão visual */}
-        {conversation.resumo_conversa && (
-          <div className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-700 text-sm mt-1 mb-1">
-            <span className="font-medium text-zinc-500">Resumo: </span>{conversation.resumo_conversa}
-          </div>
-        )}
       </div>
-      {/* Bloco à direita */}
-      <div className="flex flex-col items-end justify-between min-w-[80px]">
-        <span className="text-xs text-zinc-400 font-mono mb-2">{formatTime(conversation.updated_at)}</span>
-        <span className="text-xs text-zinc-500">Agente:</span>
-        <span className="text-xs text-zinc-700 font-semibold">{conversation.agente}</span>
->>>>>>> parent of 79ea50e (v.0.7)
+      {/* Overlay de nova mensagem */}
+      {!isRead && (
+        <div className="absolute inset-0 bg-ninacare-primary/5 pointer-events-none">
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-ninacare-primary" aria-label="Não lida"></div>
+        </div>
+      )}
+      {/* Ações rápidas */}
+      <div className="absolute top-4 right-4 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={togglePriority}
+          className={`p-1.5 rounded-full transition-colors ${isPriority ? "text-yellow-400 hover:bg-yellow-100/50" : "text-zinc-400 hover:text-yellow-400 hover:bg-zinc-100"}`}
+          aria-label={isPriority ? "Remover prioridade" : "Marcar como prioridade"}
+          disabled={loadingPriority}
+        >
+          {isPriority ? <StarOff className="w-5 h-5" /> : <Star className="w-5 h-5" />}
+        </button>
+        {isRead ? (
+           <button
+             onClick={() => navigate(`/pacientes/${conversation.id}`)}
+             className="p-1.5 rounded-full text-zinc-400 hover:text-ninacare-primary hover:bg-zinc-100 transition-colors"
+             aria-label="Ver conversa"
+           >
+             <User className="w-5 h-5" />
+           </button>
+        ) : (
+          <button
+            onClick={markAsRead}
+            className="p-1.5 rounded-full text-zinc-400 hover:text-green-500 hover:bg-green-100/50 transition-colors"
+            aria-label="Marcar como lida"
+            disabled={loadingRead}
+          >
+            <CheckCircle className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );
