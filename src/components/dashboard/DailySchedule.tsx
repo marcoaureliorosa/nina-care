@@ -11,7 +11,7 @@ interface Appointment {
 }
 
 interface DailyScheduleProps {
-  upcomingAppointments: Appointment[];
+  upcomingAppointments: any[];
 }
 
 const DailySchedule = ({ upcomingAppointments }: DailyScheduleProps) => {
@@ -24,7 +24,7 @@ const DailySchedule = ({ upcomingAppointments }: DailyScheduleProps) => {
       <CardContent>
         <div className="space-y-4">
           {upcomingAppointments && upcomingAppointments.length > 0 ? (
-            upcomingAppointments.map((apt) => (
+            upcomingAppointments.map((apt: Appointment) => (
               <div key={apt.id} className="flex items-center">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={`/avatars/${apt.pacientes?.nome?.charAt(0)}.png`} alt="Avatar" />

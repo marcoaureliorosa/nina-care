@@ -11,6 +11,7 @@ import EngagementMetrics from "./dashboard/EngagementMetrics"
 import OverviewMetrics from "./dashboard/OverviewMetrics"
 import DailySchedule from "./dashboard/DailySchedule"
 import EditProceduresDialog from "@/components/dashboard/EditProceduresDialog"
+import HumanActivationsMetrics from "./dashboard/HumanActivationsMetrics"
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -55,9 +56,6 @@ const Dashboard = () => {
           <div className="w-full space-y-8">
             <OverviewMetrics
               newPatientsMonthly={metrics.newPatientsMonthly}
-              scheduledToday={metrics.scheduledToday}
-              pendingConversations={metrics.pendingConversations}
-              humanActivationsMonthly={metrics.humanActivationsMonthly}
             />
 
             <MainMetricsGrid
@@ -69,7 +67,12 @@ const Dashboard = () => {
               onEditProcedures={() => setIsEditProceduresOpen(true)}
             />
 
-            <div className="grid gap-8 lg:grid-cols-3">
+            <HumanActivationsMetrics
+              humanActivationsToday={metrics.humanActivations.count}
+              humanActivationsMonthly={metrics.humanActivationsMonthly}
+            />
+
+            <div className="grid gap-8 lg:grid-cols-3 items-stretch">
               <div className="lg:col-span-1">
                 <DailySchedule upcomingAppointments={metrics.upcomingAppointments} />
               </div>
@@ -77,7 +80,6 @@ const Dashboard = () => {
                 <EngagementMetrics
                   responseRate24h={metrics.responseRate24h}
                   spontaneousContacts={metrics.spontaneousContacts}
-                  humanActivations={metrics.humanActivations}
                   satisfactionClicks={metrics.satisfactionClicks}
                 />
               </div>

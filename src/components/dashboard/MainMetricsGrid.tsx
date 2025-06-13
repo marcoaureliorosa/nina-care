@@ -15,7 +15,7 @@ const MainMetricsGrid = ({
   procedures, 
   totalPatients, 
   patientsPercentage,
-  activePatients, 
+  activePatients,
   ninaActivation,
   onEditProcedures
 }: MainMetricsGridProps) => {
@@ -56,12 +56,12 @@ const MainMetricsGrid = ({
               value={activePatients.count.toLocaleString()}
               percentage={activePatients.percentage}
               icon={UserCheck}
-              description="Pacientes com atividade recente"
+              description="Pacientes com atividade nas últimas 24h"
             />
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>
-              Pacientes que enviaram pelo menos uma mensagem nos últimos 30 dias.
+              Pacientes que enviaram pelo menos uma mensagem nas últimas 24 horas.
             </span>
           </TooltipContent>
         </Tooltip>

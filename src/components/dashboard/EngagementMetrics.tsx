@@ -9,18 +9,16 @@ import { motion } from "framer-motion"
 interface EngagementMetricsProps {
   responseRate24h: { count: number; percentage: number }
   spontaneousContacts: { count: number; percentage: number }
-  humanActivations: { count: number; percentage: number }
   satisfactionClicks: number
 }
 
 const EngagementMetrics = ({
   responseRate24h,
   spontaneousContacts,
-  humanActivations,
   satisfactionClicks
 }: EngagementMetricsProps) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,30 +80,6 @@ const EngagementMetrics = ({
         </Card>
       </motion.div>
       <div className="space-y-6 h-full flex flex-col">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="flex-grow"
-              >
-                <MetricCard
-                  title="Acionamentos Humanos (Hoje)"
-                  value={humanActivations.count.toLocaleString()}
-                  icon={Phone}
-                  description="Escalações para atendimento humano"
-                />
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <span>
-                Quantidade de vezes que a IA acionou a equipe especializada, seja por solicitação do paciente ou por complicação detectada.
-              </span>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

@@ -14,6 +14,7 @@ import PatientsHeader from "@/components/patients/PatientsHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import PatientDialog from "@/components/patients/PatientDialog";
+import { Switch } from "@/components/ui/switch";
 
 interface Medico {
   id: string;
@@ -130,6 +131,38 @@ const PacientesPage = () => {
     }
   });
 
+  const updatePatientStatusMutation = useMutation({
+    mutationFn: async ({ id, nina_status }: { id: string, nina_status: boolean }) => {
+      console.log('Updating patient status:', { id, nina_status });
+      const { data, error } = await supabase
+        .from('pacientes')
+        .update({ nina_status })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Update successful:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('Mutation success:', data);
+      queryClient.setQueryData(['patients', searchTerm], (oldData: any[] | undefined) => {
+        if (!oldData) return [];
+        return oldData.map(p => p.id === data.id ? data : p);
+      });
+      toast.success(`Paciente ${data.nina_status ? 'ativado' : 'desativado'} com sucesso!`);
+    },
+    onError: (error: any) => {
+      console.error('Error updating patient status:', error);
+      toast.error(`Erro ao atualizar o status do paciente: ${error.message || 'Erro desconhecido'}`);
+    }
+  });
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -202,21 +235,33 @@ const PacientesPage = () => {
             <div className="col-span-full text-center text-zinc-500">Carregando...</div>
           ) : (patients && patients.length > 0 ? (
             patients.map((patient: any) => (
-              <Card key={patient.id} className="rounded-2xl border bg-white/90 shadow-md hover:shadow-lg transition-all flex flex-col p-6">
+              <Card 
+                key={patient.id} 
+                className="rounded-2xl border bg-white/90 shadow-md hover:shadow-lg transition-all flex flex-col p-6 cursor-pointer hover:bg-white/95"
+                onClick={() => handleEditPatient(patient)}
+              >
                 <div className="flex items-center gap-4 mb-3">
                   <Avatar className="h-12 w-12 shadow border-2 border-white bg-ninacare-primary/10">
                     <AvatarFallback className="bg-ninacare-primary text-white text-lg font-bold">{patient.nome?.[0] || '?'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <span className="font-bold text-lg text-zinc-900 truncate block">{patient.nome}</span>
-                    <Badge className={`${patient.nina_status ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-zinc-200 text-zinc-600 border-zinc-300'} px-2 py-0.5 text-xs font-semibold rounded-full shadow-none mt-1`}>
-                      {patient.nina_status ? 'Ativo' : 'Inativo'}
-                    </Badge>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-lg text-zinc-900">{patient.nome}</span>
+                      <Badge className={`${patient.nina_status ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-zinc-200 text-zinc-600 border-zinc-300'} px-1.5 py-0.5 text-xs font-medium rounded-full shadow-none`}>
+                        {patient.nina_status ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
                   </div>
-                  {/* Ações rápidas */}
-                  <div className="flex flex-col gap-2 items-end">
-                    <Button size="icon" variant="ghost" onClick={() => handleEditPatient(patient)} aria-label="Editar paciente"><Edit className="w-4 h-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleDeletePatient(patient.id)} aria-label="Excluir paciente"><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                  {/* Toggle de ativação */}
+                  <div className="flex items-center">
+                    <Switch
+                      checked={patient.nina_status}
+                      onCheckedChange={(newStatus) => {
+                        updatePatientStatusMutation.mutate({ id: patient.id, nina_status: newStatus });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Ativar/Desativar paciente"
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
@@ -231,9 +276,23 @@ const PacientesPage = () => {
                   <span className="font-medium">CPF:</span>
                   <span className="truncate">{patient.cpf || '-'}</span>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-400 text-xs mt-2">
-                  <span>Cadastro:</span>
-                  <span>{formatDate(patient.created_at)}</span>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                    <span>Cadastro:</span>
+                    <span>{formatDate(patient.created_at)}</span>
+                  </div>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePatient(patient.id);
+                    }} 
+                    aria-label="Excluir paciente"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </Card>
             ))

@@ -4,16 +4,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface OverviewMetricsProps {
   newPatientsMonthly: number;
-  scheduledToday: number;
-  pendingConversations: number;
-  humanActivationsMonthly: number;
 }
 
 const OverviewMetrics = ({
   newPatientsMonthly,
-  scheduledToday,
-  pendingConversations,
-  humanActivationsMonthly,
 }: OverviewMetricsProps) => {
   const metrics = [
     {
@@ -23,31 +17,10 @@ const OverviewMetrics = ({
       description: "Pacientes cadastrados nos últimos 30 dias.",
       tooltip: "Total de novos pacientes únicos cadastrados nos últimos 30 dias."
     },
-    {
-      title: "Consultas Agendadas (Hoje)",
-      value: scheduledToday,
-      icon: <Calendar className="h-4 w-4 text-muted-foreground" />,
-      description: "Procedimentos marcados para hoje.",
-      tooltip: "Total de procedimentos agendados para a data de hoje."
-    },
-    {
-      title: "Conversas Pendentes",
-      value: pendingConversations,
-      icon: <MessageCircleWarning className="h-4 w-4 text-muted-foreground" />,
-      description: "Conversas aguardando resposta.",
-      tooltip: "Conversas que receberam uma nova mensagem do paciente e ainda não foram visualizadas pela equipe."
-    },
-    {
-      title: "Acionamentos Humanos (Mês)",
-      value: humanActivationsMonthly,
-      icon: <Bot className="h-4 w-4 text-muted-foreground" />,
-      description: "Intervenções manuais nos últimos 30 dias.",
-      tooltip: "Quantidade de vezes que a IA precisou de uma intervenção humana nos últimos 30 dias."
-    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-1">
       {metrics.map((metric, index) => (
         metric.tooltip ? (
           <TooltipProvider key={index}>
