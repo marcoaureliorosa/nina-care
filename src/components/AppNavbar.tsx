@@ -3,7 +3,7 @@ import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuL
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import UserMenu from "./UserMenu";
 
 const menu = [
@@ -17,13 +17,18 @@ const menu = [
 ];
 
 export default function AppNavbar() {
+  const navigate = useNavigate();
+
   // Renderiza itens do menu principal
   const renderMenuItem = (item) => (
     <NavigationMenuItem key={item.title}>
       <NavigationMenuLink asChild>
-        <Link to={item.url} className="px-4 py-2 text-sm font-medium text-zinc-800 hover:text-ninacare-primary transition-colors">
+        <button 
+          onClick={() => navigate(item.url)}
+          className="px-4 py-2 text-sm font-medium text-zinc-800 hover:text-ninacare-primary transition-colors cursor-pointer"
+        >
           {item.title}
-        </Link>
+        </button>
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
