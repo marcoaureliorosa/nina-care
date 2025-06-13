@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 
 const menu = [
@@ -29,8 +29,13 @@ export default function AppNavbar() {
       <SheetContent side="left" className="p-0 w-64">
         <nav className="flex flex-col gap-2 mt-8 px-4">
           {menu.map((item) => (
-            <Button asChild variant="ghost" className="justify-start w-full" key={item.title}>
-              <Link to={item.url}>{item.title}</Link>
+            <Button 
+              variant="ghost" 
+              className="justify-start w-full" 
+              key={item.title}
+              onClick={() => navigate(item.url)}
+            >
+              {item.title}
             </Button>
           ))}
         </nav>
