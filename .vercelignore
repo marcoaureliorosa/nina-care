@@ -1,0 +1,15 @@
+node_modules
+.git
+src
+public
+*.md
+*.sql
+.cursor
+bun.lockb
+package-lock.json
+tsconfig.*.json
+postcss.config.js
+tailwind.config.ts
+eslint.config.js
+components.json
+vite.config.ts 
