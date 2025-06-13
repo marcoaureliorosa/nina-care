@@ -11,13 +11,11 @@ interface DashboardHeaderProps {
   } | null;
 }
 
-const roleLabels: Record<string, string> = {
+const roleDisplayMap: Record<string, string> = {
   admin: 'Administrador',
   doctor: 'Médico',
-  nurse: 'Enfermeiro',
-  secretary: 'Secretária',
-  recepcionista: 'Recepcionista',
-}
+  equipe: 'Equipe',
+};
 
 const DashboardHeader = ({ userProfile }: DashboardHeaderProps) => {
   const { user, profile } = useAuth();
@@ -50,7 +48,7 @@ const DashboardHeader = ({ userProfile }: DashboardHeaderProps) => {
             {userName}
             {userRole && (
               <Badge className="ml-2 bg-white/20 text-white border-white/30" variant="secondary">
-                {roleLabels[userRole] || userRole}
+                {roleDisplayMap[userRole] || userRole}
               </Badge>
             )}
           </h1>

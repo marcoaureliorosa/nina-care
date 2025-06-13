@@ -147,7 +147,7 @@ const UserFormDialog = ({
               <SelectContent>
                 <SelectItem value="admin">Administrador</SelectItem>
                 <SelectItem value="doctor">Médico</SelectItem>
-                <SelectItem value="recepcionista">Equipe</SelectItem>
+                <SelectItem value="equipe">Equipe</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -197,8 +197,6 @@ const UserFormDialog = ({
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
             />
           </div>
-
-
 
           <div className="space-y-4 pt-4">
             <div className="flex gap-2">

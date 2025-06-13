@@ -1,193 +1,95 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermissions } from '@/hooks/usePermissions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Settings, Users, Building2, ShieldCheck, FileText, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Users, Building2, Settings, Shield, AlertCircle } from 'lucide-react';
-import UserManagement from '@/components/admin/UserManagement';
-import OrganizationManagement from '@/components/admin/OrganizationManagement';
-import OrganizationSwitcher from '@/components/admin/OrganizationSwitcher';
 
 const AdminPage = () => {
   const { profile } = useAuth();
-  const { isAdmin, isDoctor, canManageUsers, canManageOrganization, canAccessConfigurations, userRole } = usePermissions();
+  const isAdmin = profile?.role === 'admin';
+  const userRole = profile?.role || 'Visitante';
 
-  if (!profile) {
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Activity className="w-8 h-8 text-ninacare-primary animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Verificar se o usuário tem permissão para acessar a página de admin
-  if (!isAdmin() && !isDoctor()) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <ShieldCheck className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h2>
           <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Apenas administradores e médicos podem acessar o painel administrativo.
-          </p>
         </div>
       </div>
     );
   }
 
+  const sections = [
+    {
+      title: 'Configurações Gerais',
+      description: 'Ajustes globais da aplicação',
+      icon: Settings,
+      href: '/configuracoes',
+      disabled: false,
+    },
+    {
+      title: 'Gerenciar Organização',
+      description: 'Edite os dados da sua organização',
+      icon: Building2,
+      href: '/configuracoes?tab=organization',
+      disabled: false,
+    },
+    {
+      title: 'Gerenciar Usuários',
+      description: 'Adicione, remova e edite usuários',
+      icon: Users,
+      href: '/configuracoes?tab=users',
+      disabled: false,
+    },
+    {
+      title: 'Modelos e Documentos',
+      description: 'Gerencie os modelos de documentos',
+      icon: FileText,
+      href: '#',
+      disabled: true,
+    },
+    {
+      title: 'Inteligência Artificial',
+      description: 'Configurações do assistente de IA',
+      icon: Bot,
+      href: '#',
+      disabled: true,
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isAdmin() ? 'Painel Administrativo' : 'Painel de Gerenciamento'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {isAdmin() 
-              ? 'Gerencie usuários, organizações e configurações do sistema'
-              : 'Gerencie usuários e configurações do sistema'
-            }
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Badge className="bg-green-100 text-green-800">
-            <Shield className="w-3 h-3 mr-1" />
-            {userRole === 'admin' ? 'Administrador' : 
-             userRole === 'doctor' ? 'Médico' : 
-             userRole === 'recepcionista' ? 'Equipe' : userRole}
-          </Badge>
-          {canManageOrganization() && <OrganizationSwitcher />}
-        </div>
+    <div className="container mx-auto p-4 md:p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Painel do Administrador</h1>
+        <p className="text-muted-foreground">Bem-vindo, {profile?.nome || 'Admin'}.</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Organização Atual</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{profile.organizacoes?.nome || 'Sem organização'}</div>
-            <p className="text-xs text-muted-foreground">
-              CNPJ: {profile.organizacoes?.cnpj || 'Não informado'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Seu Papel</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userRole === 'admin' ? 'Administrador' : 
-               userRole === 'doctor' ? 'Médico' : 
-               userRole === 'recepcionista' ? 'Equipe' : userRole}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {userRole === 'admin' ? 'Acesso completo ao sistema' :
-               userRole === 'doctor' ? 'Acesso completo exceto organizações' :
-               'Acesso básico - sem configurações'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Status</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Ativo</div>
-            <p className="text-xs text-muted-foreground">
-              Sistema operacional
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {sections.map((section, index) => (
+          <Link key={index} to={section.disabled ? '#' : section.href} className={section.disabled ? 'pointer-events-none' : ''}>
+            <Card className={`h-full transition-all hover:shadow-lg hover:border-primary/50 ${section.disabled ? 'opacity-50 bg-muted/50' : ''}`}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <section.icon className="w-8 h-8 text-primary" />
+                  {section.disabled && <Badge variant="outline">Em breve</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <h3 className="text-lg font-semibold">{section.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                {!section.disabled && (
+                  <div className="text-sm font-medium text-primary flex items-center mt-4">
+                    Acessar <ArrowRight className="w-4 h-4 ml-1" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
-
-      {/* Tabs de Administração */}
-      <Tabs defaultValue="users" className="space-y-4">
-        <TabsList>
-          {canManageUsers() && (
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Usuários
-            </TabsTrigger>
-          )}
-          {canManageOrganization() && (
-            <TabsTrigger value="organization" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Organização
-            </TabsTrigger>
-          )}
-          {canAccessConfigurations() && (
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Configurações
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        {canManageUsers() && (
-          <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciamento de Usuários</CardTitle>
-                <CardDescription>
-                  Gerencie os usuários da sua organização, defina papéis e permissões.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {canManageOrganization() && (
-          <TabsContent value="organization" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciamento da Organização</CardTitle>
-                <CardDescription>
-                  Configure as informações da sua organização.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <OrganizationManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {canAccessConfigurations() && (
-          <TabsContent value="settings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações do Sistema</CardTitle>
-                <CardDescription>
-                  Configure preferências e parâmetros do sistema.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500">
-                  As configurações do sistema serão implementadas em breve.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
     </div>
   );
 };

@@ -42,13 +42,16 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
     }
   };
 
-  // Filtrar usuários e organizações se for só da organização atual
-  const filteredUsers = onlyCurrentOrganization
+  const isAdmin = profile?.role === 'admin';
+
+  // Admin sempre vê todos os usuários e organizações, independentemente do filtro.
+  // O filtro se aplica apenas para visualização na tabela.
+  const usersForTable = onlyCurrentOrganization && !isAdmin 
     ? users.filter(u => u.organizacao_id === profile?.organizacao_id)
     : users;
-  const filteredOrganizations = onlyCurrentOrganization
-    ? organizations.filter(o => o.id === profile?.organizacao_id)
-    : organizations;
+
+  // O formulário de diálogo para um admin sempre terá todas as organizações.
+  const organizationsForDialog = isAdmin ? organizations : organizations.filter(o => o.id === profile?.organizacao_id);
 
   return (
     <div className="space-y-4">
@@ -58,17 +61,18 @@ const UserManagement = ({ onlyCurrentOrganization }: UserManagementProps) => {
         editingUser={editingUser}
         formData={formData}
         setFormData={setFormData}
-        organizations={filteredOrganizations}
+        organizations={organizationsForDialog}
         loading={loading}
         onSubmit={handleSubmit}
         onDialogClose={handleDialogClose}
         onDelete={handleDeleteUser}
-        hideOrganizationSelect={onlyCurrentOrganization}
+        // Admin sempre pode selecionar a organização.
+        hideOrganizationSelect={!isAdmin && onlyCurrentOrganization}
         openNewUserDialog={openNewUserDialog}
       />
 
       <UserTable
-        users={filteredUsers}
+        users={usersForTable}
         currentUserId={profile?.id}
         onEdit={handleEdit}
       />

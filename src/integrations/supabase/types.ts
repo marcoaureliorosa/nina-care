@@ -391,7 +391,7 @@ export type Database = {
           is_active: boolean
           nome: string
           organizacao_id: string
-          role: Database["public"]["Enums"]["user_role"]
+          role: "admin" | "doctor" | "equipe"
           telefone: string | null
           updated_at: string
         }
@@ -407,7 +407,7 @@ export type Database = {
           is_active?: boolean
           nome: string
           organizacao_id: string
-          role?: Database["public"]["Enums"]["user_role"]
+          role: "admin" | "doctor" | "equipe"
           telefone?: string | null
           updated_at?: string
         }
@@ -423,7 +423,7 @@ export type Database = {
           is_active?: boolean
           nome?: string
           organizacao_id?: string
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: "admin" | "doctor" | "equipe"
           telefone?: string | null
           updated_at?: string
         }
@@ -472,7 +472,7 @@ export type Database = {
           id: string
           is_primary: boolean | null
           organizacao_id: string
-          role: Database["public"]["Enums"]["user_role_enum"]
+          role: "admin" | "doctor" | "equipe"
           user_id: string | null
         }
         Insert: {
@@ -480,7 +480,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           organizacao_id: string
-          role?: Database["public"]["Enums"]["user_role_enum"]
+          role: "admin" | "doctor" | "equipe"
           user_id?: string | null
         }
         Update: {
@@ -488,7 +488,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           organizacao_id?: string
-          role?: Database["public"]["Enums"]["user_role_enum"]
+          role?: "admin" | "doctor" | "equipe"
           user_id?: string | null
         }
         Relationships: [
@@ -717,13 +717,8 @@ export type Database = {
         | "preop"
         | "monitoring"
         | "finished"
-      user_role: "admin" | "doctor" | "nurse" | "secretary" | "recepcionista"
-      user_role_enum:
-        | "admin"
-        | "doctor"
-        | "nurse"
-        | "secretary"
-        | "recepcionista"
+      user_role: "admin" | "doctor" | "equipe"
+      user_role_enum: "admin" | "doctor" | "equipe"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -846,13 +841,11 @@ export const Constants = {
         "monitoring",
         "finished",
       ],
-      user_role: ["admin", "doctor", "nurse", "secretary", "recepcionista"],
+      user_role: ["admin", "doctor", "equipe"],
       user_role_enum: [
         "admin",
         "doctor",
-        "nurse",
-        "secretary",
-        "recepcionista",
+        "equipe",
       ],
     },
   },

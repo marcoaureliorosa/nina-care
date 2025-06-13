@@ -54,7 +54,7 @@ export const useUserForm = (
     nome: '',
     email: '',
     telefone: '',
-    role: 'recepcionista',
+    role: 'equipe',
     organizacao_id: profile?.organizacao_id || '',
     is_active: true,
     avatar_url: '',
@@ -94,7 +94,7 @@ export const useUserForm = (
   }, [formData.role]);
 
   const resetForm = () => {
-    const defaultRole = 'recepcionista';
+    const defaultRole = 'equipe';
     setFormData({
       nome: '',
       email: '',
@@ -111,7 +111,7 @@ export const useUserForm = (
   // Função para abrir o dialog de novo usuário
   const openNewUserDialog = () => {
     setEditingUser(null);
-    const defaultRole = 'recepcionista';
+    const defaultRole = 'equipe';
     setFormData({
       nome: '',
       email: '',
@@ -185,6 +185,7 @@ export const useUserForm = (
     const { data: orgData, error: orgError } = await supabase.rpc('get_current_user_org');
     
     if (orgError || !orgData) {
+      console.error('Erro ao obter organização do usuário:', orgError);
       toast({
         title: "Erro de permissão",
         description: "Não foi possível verificar sua organização. Faça login novamente.",
@@ -214,6 +215,7 @@ export const useUserForm = (
 
     // 3. Validar formulário com os dados finais
     const validation = validateForm(finalFormData);
+    
     if (!validation.isValid) {
       toast({
         title: "Dados inválidos",
@@ -248,7 +250,9 @@ export const useUserForm = (
         });
       } else {
         // CRIAR NOVO USUÁRIO
-        const { data, error: inviteError } = await supabase.auth.signUp({
+        console.log('Iniciando criação de usuário:', finalFormData.email);
+        
+        const signUpData = {
           email: finalFormData.email,
           password: generateTemporaryPassword(),
           options: {
@@ -261,10 +265,19 @@ export const useUserForm = (
               can_manage_organizations: finalFormData.can_manage_organizations
             }
           }
-        });
+        };
+        
+        const { data, error: inviteError } = await supabase.auth.signUp(signUpData);
 
-        if (inviteError) throw inviteError;
-        if (!data.user) throw new Error('Criação do usuário falhou.');
+        if (inviteError) {
+          console.error('Erro no signUp:', inviteError);
+          throw inviteError;
+        }
+        if (!data.user) {
+          throw new Error('Criação do usuário falhou.');
+        }
+        
+        console.log('Usuário criado com sucesso:', data.user.id);
         
         toast({
           title: "Convite Enviado",
@@ -276,7 +289,8 @@ export const useUserForm = (
       handleDialogClose();
 
     } catch (error: any) {
-      console.error('Submit error:', error);
+      console.error('Erro na criação/atualização do usuário:', error);
+      
       toast({
         title: "Erro ao salvar",
         description: error.message || "Ocorreu um erro inesperado.",

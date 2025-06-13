@@ -187,19 +187,23 @@ const ConfiguracoesPage = () => {
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                   <PendingInvitations />
                   
-                  <Card className="border border-border/30 hover:border-border/60 transition-all">
+                  {/* Card de Permissões e Funções - Desabilitado Temporariamente */}
+                  <Card className="border border-border/30 opacity-60 cursor-not-allowed">
                     <CardContent className="p-6">
                       <div className="flex flex-col space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="bg-primary/10 p-2 rounded-full">
-                            <ShieldCheck className="w-5 h-5 text-primary" />
+                          <div className="bg-muted/20 p-2 rounded-full">
+                            <ShieldCheck className="w-5 h-5 text-muted-foreground" />
                           </div>
-                          <h3 className="font-medium">Permissões e Funções</h3>
+                          <div>
+                            <h3 className="font-medium text-muted-foreground">Permissões e Funções</h3>
+                            <p className="text-sm text-muted-foreground/70">Em breve</p>
+                          </div>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Configure as permissões e funções dos usuários da sua organização.
                         </p>
-                        <Button variant="outline" size="sm" className="w-full justify-between mt-2">
+                        <Button variant="outline" size="sm" className="w-full justify-between mt-2" disabled>
                           <span>Gerenciar permissões</span>
                           <ArrowRight className="w-4 h-4" />
                         </Button>

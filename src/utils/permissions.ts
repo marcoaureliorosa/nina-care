@@ -1,4 +1,5 @@
 import type { Database } from '@/integrations/supabase/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type UserRole = Database["public"]["Enums"]["user_role"];
 
@@ -100,24 +101,13 @@ export const usePermissions = (userRole?: string) => {
   };
 };
 
-// Lista de roles organizados para formulários - APENAS 3 PERFIS PRINCIPAIS
-export const ROLE_OPTIONS = [
-  {
-    value: 'admin',
-    label: 'Administrador',
-    description: 'Acesso total + gestão de organizações',
-    canManageOrg: true
-  },
-  {
-    value: 'doctor',
-    label: 'Médico', 
-    description: 'Acesso completo exceto criar/excluir organizações',
-    canManageOrg: false
-  },
-  {
-    value: 'recepcionista',
-    label: 'Equipe',
-    description: 'Acesso básico - sem configurações',
-    canManageOrg: false
-  }
-] as const; 
+export const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
+  { value: 'admin', label: 'Administrador' },
+  { value: 'doctor', label: 'Médico' },
+  { value: 'equipe', label: 'Equipe' },
+];
+
+export const useAuthorization = () => {
+  const { profile } = useAuth();
+  // ... existing code ...
+}; 

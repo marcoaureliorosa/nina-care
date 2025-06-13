@@ -13,7 +13,9 @@ import {
   ClipboardList, 
   Building2, 
   CheckCircle2, 
-  XCircle 
+  XCircle,
+  MoreHorizontal,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +24,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { UserProfile } from './types';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface UserTableProps {
   users: UserProfile[];
@@ -53,6 +56,18 @@ const getRoleIcon = (role: string) => {
   }
 };
 
+const roleDisplayNames: Record<string, string> = {
+  admin: 'Administrador',
+  doctor: 'Médico',
+  equipe: 'Equipe',
+};
+
+const roleColors: Record<string, string> = {
+  admin: 'bg-red-100 text-red-800 hover:bg-red-200',
+  doctor: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+  equipe: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+};
+
 const UserTable = ({ users, currentUserId, onEdit }: UserTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>(users);
@@ -65,30 +80,6 @@ const UserTable = ({ users, currentUserId, onEdit }: UserTableProps) => {
     );
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
-
-  const getRoleBadge = (role: string) => {
-    const roleColors = {
-      admin: 'bg-red-100 text-red-800 hover:bg-red-200',
-      doctor: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-      recepcionista: 'bg-green-100 text-green-800 hover:bg-green-200'
-    };
-    
-    const roleLabels = {
-      admin: 'Administrador',
-      doctor: 'Médico',
-      recepcionista: 'Equipe'
-    };
-
-    const roleColor = roleColors[role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    const roleLabel = roleLabels[role as keyof typeof roleLabels] || 'Equipe';
-
-    return (
-      <Badge variant="outline" className={cn("flex items-center gap-1 px-2 py-1 rounded-full", roleColor)}>
-        {getRoleIcon(role)}
-        <span>{roleLabel}</span>
-      </Badge>
-    );
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -157,56 +148,56 @@ const UserTable = ({ users, currentUserId, onEdit }: UserTableProps) => {
         >
           {filteredUsers.map((user) => (
             <motion.div key={user.id} variants={itemVariants}>
-              <Card 
-                className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/30 cursor-pointer hover:scale-[1.02]"
-                onClick={() => {
-                  console.log('Clicou no card do usuário:', user.nome);
-                  onEdit(user);
-                }}
+              <div 
+                className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => onEdit(user)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <Avatar className="h-16 w-16 border-2 border-background">
-                        <AvatarImage src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nome}`} alt={user.nome} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                          {getInitials(user.nome)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg text-foreground truncate">{user.nome}</h3>
-                        <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                      </div>
-                    </div>
-                    <div className="text-xs text-muted-foreground opacity-70">
-                      Clique para editar
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={user.avatar_url || ''} alt={user.nome} />
+                      <AvatarFallback>{getInitials(user.nome)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="font-semibold">{user.nome}</h4>
+                      <div className="text-sm text-muted-foreground">{user.email}</div>
                     </div>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {getRoleBadge(user.role)}
-                      <Badge 
-                        variant={user.is_active ? "default" : "secondary"}
-                        className="flex items-center gap-1 px-3 py-1"
-                      >
-                        {user.is_active ? 
-                          <CheckCircle2 className="w-3 h-3" /> : 
-                          <XCircle className="w-3 h-3" />
-                        }
-                        {user.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    
-                    {user.organizacoes?.nome && (
-                      <div className="flex items-center text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
-                        <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{user.organizacoes.nome}</span>
-                      </div>
-                    )}
+                  {user.id !== currentUserId && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="w-8 h-8 p-0">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => onEdit(user)}>Editar</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge 
+                      variant="secondary" 
+                      className={`cursor-pointer transition-colors ${roleColors[user.role] || 'bg-gray-100'}`}
+                      onClick={(e) => { e.stopPropagation(); onEdit(user); }}
+                    >
+                      {roleDisplayNames[user.role] || user.role}
+                    </Badge>
+                    <Badge 
+                      variant={user.is_active ? "default" : "secondary"}
+                      className={user.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                    >
+                      {user.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>{user.organizacoes?.nome || 'Sem organização'}</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           ))}
         </motion.div>
