@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -18,20 +17,6 @@ const menu = [
 
 export default function AppNavbar() {
   const navigate = useNavigate();
-
-  // Renderiza itens do menu principal
-  const renderMenuItem = (item) => (
-    <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink asChild>
-        <button 
-          onClick={() => navigate(item.url)}
-          className="px-4 py-2 text-sm font-medium text-zinc-800 hover:text-ninacare-primary transition-colors cursor-pointer"
-        >
-          {item.title}
-        </button>
-      </NavigationMenuLink>
-    </NavigationMenuItem>
-  );
 
   // Menu mobile (Sheet)
   const MobileMenu = () => (
@@ -61,11 +46,17 @@ export default function AppNavbar() {
       </Link>
       {/* Navegação central (desktop) */}
       <nav className="hidden lg:flex flex-1 justify-center">
-        <NavigationMenu>
-          <NavigationMenuList>
-            {menu.map(renderMenuItem)}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <div className="flex items-center gap-2">
+          {menu.map((item) => (
+            <button
+              key={item.title}
+              onClick={() => navigate(item.url)}
+              className="px-4 py-2 text-sm font-medium text-zinc-800 hover:text-ninacare-primary transition-colors cursor-pointer rounded-md hover:bg-gray-50"
+            >
+              {item.title}
+            </button>
+          ))}
+        </div>
       </nav>
       {/* Ações à direita */}
       <div className="flex items-center gap-2">
