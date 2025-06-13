@@ -9,6 +9,7 @@ import Papa from "papaparse";
 import { z } from "zod";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BatchImportDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface BatchImportDialogProps {
 }
 
 export default function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps) {
+  const { profile } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -87,6 +89,8 @@ export default function BatchImportDialog({ open, onOpenChange }: BatchImportDia
     paciente_nome: z.string().min(1, "Nome do paciente é obrigatório"),
     paciente_email: z.string().email({ message: "E-mail do paciente inválido" }).optional().or(z.literal("")),
     paciente_telefone: z.string().optional(),
+    paciente_cpf: z.string().optional(),
+    paciente_data_nascimento: z.string().optional(),
     medico_id: z.string().uuid("ID de médico inválido"),
     data_procedimento: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Data de procedimento inválida",
@@ -99,6 +103,8 @@ export default function BatchImportDialog({ open, onOpenChange }: BatchImportDia
       "paciente_nome",
       "paciente_email",
       "paciente_telefone",
+      "paciente_cpf",
+      "paciente_data_nascimento",
       "medico_id",
       "data_procedimento",
       "observacoes_procedimento",
@@ -151,17 +157,24 @@ export default function BatchImportDialog({ open, onOpenChange }: BatchImportDia
   };
 
   const confirmImport = async () => {
+    if (!profile?.organizacao_id) {
+      toast.error("Não foi possível identificar a organização. A importação foi cancelada.");
+      return;
+    }
+
     try {
       setSending(true);
       let sent = 0;
       let errors = 0;
 
       for (const record of validRows) {
-        // @ts-ignore - O tipo da RPC não foi atualizado, mas a chamada está correta.
         const { error } = await supabase.rpc("create_patient_with_procedure", {
-          p_nome: record.paciente_nome,
-          p_email: record.paciente_email,
-          p_telefone: record.paciente_telefone,
+          patient_nome: record.paciente_nome,
+          patient_email: record.paciente_email,
+          patient_telefone: record.paciente_telefone,
+          patient_cpf: record.paciente_cpf || null,
+          patient_data_nascimento: record.paciente_data_nascimento || null,
+          patient_organizacao_id: profile.organizacao_id,
           proc_medico_id: record.medico_id,
           proc_data_procedimento: record.data_procedimento,
           proc_observacoes: record.observacoes_procedimento,
