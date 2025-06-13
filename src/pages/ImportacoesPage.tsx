@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import BatchImportDialog from '@/components/patients/BatchImportDialog';
 import { Button } from '@/components/ui/button';
@@ -53,9 +52,10 @@ const ImportacoesPage = () => {
       <BatchImportDialog
         open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
+        entity="pacientes" // Manteremos "pacientes" por enquanto, vamos ajustar o schema depois
       />
     </div>
   );
 };
 
-export default ImportacoesPage;
+export default ImportacoesPage; 
