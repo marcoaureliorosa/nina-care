@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 const ConfiguracoesPage = () => {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const isDoctor = profile?.role === 'doctor';
+  const canAccessConfigurations = isAdmin || isDoctor;
 
   return (
     <div className="w-full min-h-[calc(100vh-80px)] flex flex-col bg-zinc-50/50">
@@ -54,14 +56,16 @@ const ConfiguracoesPage = () => {
         </div>
 
         {/* Main Content */}
-        {isAdmin ? (
+        {canAccessConfigurations ? (
           <div className="w-full mb-12">
-            <Tabs defaultValue="organization" className="w-full">
+            <Tabs defaultValue={isAdmin ? "organization" : "users"} className="w-full">
               <TabsList className="mb-6 bg-background/80 border border-border/30">
-                <TabsTrigger value="organization" className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>Organização</span>
-                </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="organization" className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>Organização</span>
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="users" className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   <span>Usuários</span>
@@ -72,8 +76,9 @@ const ConfiguracoesPage = () => {
                 </TabsTrigger>
               </TabsList>
               
-              {/* Organization Tab */}
-              <TabsContent value="organization" className="space-y-6">
+              {/* Organization Tab - Only for Admins */}
+              {isAdmin && (
+                <TabsContent value="organization" className="space-y-6">
                 <Card className="border-border/40 shadow-sm">
                   <CardHeader className="bg-muted/30 pb-4 border-b border-border/20">
                     <div className="flex justify-between items-center">
@@ -152,6 +157,7 @@ const ConfiguracoesPage = () => {
                   </SupportModal>
                 </div>
               </TabsContent>
+              )}
               
               {/* Users Tab */}
               <TabsContent value="users" className="space-y-6">
@@ -166,7 +172,7 @@ const ConfiguracoesPage = () => {
                       </div>
                       <Badge variant="outline" className="flex items-center gap-1">
                         <ShieldCheck className="w-3 h-3" />
-                        Admin
+                        {isAdmin ? 'Admin' : 'Médico'}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -226,7 +232,7 @@ const ConfiguracoesPage = () => {
                       </div>
                       <Badge variant="outline" className="flex items-center gap-1">
                         <ShieldCheck className="w-3 h-3" />
-                        Admin
+                        {isAdmin ? 'Admin' : 'Médico'}
                       </Badge>
                     </div>
                   </CardHeader>

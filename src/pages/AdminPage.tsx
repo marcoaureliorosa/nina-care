@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge';
 const AdminPage = () => {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const isDoctor = profile?.role === 'doctor';
+  const canAccessAdmin = isAdmin || isDoctor;
   const userRole = profile?.role || 'Visitante';
 
-  if (!isAdmin) {
+  if (!canAccessAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">

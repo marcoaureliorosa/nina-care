@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/utils/permissions"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -29,7 +29,8 @@ import React from "react"
 
 // Menu items baseado em permissões
 const useMenuItems = () => {
-  const { isAdmin, isDoctor, canViewReports } = usePermissions();
+  const { profile } = useAuth();
+  const { isAdmin, isDoctor, canAccess } = usePermissions(profile?.role);
 
   const items = [
     {
@@ -84,7 +85,7 @@ const useMenuItems = () => {
 export function AppSidebar() {
   const menuItems = useMenuItems();
   const { profile, user, signOut } = useAuth();
-  const { isAdmin } = usePermissions();
+  const { isAdmin } = usePermissions(profile?.role);
   const navigate = useNavigate();
 
   // Dados do usuário e organização

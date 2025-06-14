@@ -7,12 +7,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import type { Database } from '@/integrations/supabase/types';
-import { timeAgo } from '@/utils/time';
+import { timeAgo } from '../../../utils/time';
 import { UserProfile } from '../user-management/types';
-import { getInitials } from '@/utils/string';
+import { getInitials } from '../../../utils/string';
 
-type Invitation = Database['public']['Tables']['invitations']['Row'];
 type UserRole = 'admin' | 'doctor' | 'equipe';
 
 const roleDisplay: Record<string, string> = {
@@ -28,6 +26,8 @@ const PendingInvitations: React.FC = () => {
 
   const fetchInvitations = async () => {
     setLoading(true);
+    
+    // Buscar usuários que ainda não confirmaram o email
     const { data, error } = await supabase
       .from('profiles')
       .select(`*, organizacoes ( nome )`)
@@ -40,9 +40,17 @@ const PendingInvitations: React.FC = () => {
         description: 'Não foi possível carregar os usuários pendentes.',
         variant: 'destructive',
       });
+      setInvitations([]);
     } else {
-      setInvitations(data as UserProfile[]);
+      // Filtrar apenas usuários que realmente estão pendentes
+      // Um usuário é considerado pendente se não tem email_confirmed_at
+      const pendingUsers = data?.filter(profile => 
+        !profile.email_confirmed_at
+      ) || [];
+      
+      setInvitations(pendingUsers as UserProfile[]);
     }
+    
     setLoading(false);
   };
 

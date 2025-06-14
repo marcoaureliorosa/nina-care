@@ -229,132 +229,136 @@ const AgendaPage: FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="flex-1 flex flex-col">
-        <AgendaHeader />
-        <main className="flex-1 p-6 overflow-auto">
-          {/* Filtros rápidos */}
-          <div className="w-full flex flex-wrap gap-3 items-center bg-white/80 rounded-xl shadow p-4 md:p-6 mb-6">
-            <Input
-              placeholder="Buscar por paciente"
-              className="pl-10 h-11 rounded-lg border border-zinc-200 bg-white/90 shadow-sm focus:ring-2 focus:ring-ninacare-primary placeholder:text-zinc-400 text-base transition-all w-full max-w-xs"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            <select
-              className="rounded-lg border border-zinc-200 bg-white/90 shadow-sm h-11 px-3 text-base text-zinc-700 focus:ring-2 focus:ring-ninacare-primary"
-              value={profissional}
-              onChange={e => setProfissional(e.target.value)}
-            >
-              <option value="all">Todos os profissionais</option>
-              {medicos.map(p => (
-                <option key={p.id} value={p.id}>{p.nome}</option>
-              ))}
-            </select>
-            <select
-              className="rounded-lg border border-zinc-200 bg-white/90 shadow-sm h-11 px-3 text-base text-zinc-700 focus:ring-2 focus:ring-ninacare-primary"
-              value={status}
-              onChange={e => setStatus(e.target.value)}
-            >
-              <option value="all">Todos os status</option>
-              {statusList.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Calendário */}
-            <div className="md:col-span-1">
-              <div className="md:w-full bg-white/80 rounded-2xl shadow p-4 md:p-6 flex flex-col items-center">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  className="w-full"
-                  locale={ptBR}
-                  modifiers={{ compromisso: diasComCompromissos }}
-                  modifiersClassNames={{ 
-                    compromisso: 'text-ninacare-primary font-bold border-2 border-ninacare-primary/60 bg-ninacare-primary/5 hover:border-ninacare-primary hover:bg-ninacare-primary/10 transition-all' 
-                  }}
+    <>
+      <div className="w-full min-h-[calc(100vh-80px)] flex flex-col bg-zinc-50/50">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6">
+          <div className="space-y-6">
+            <AgendaHeader />
+            
+            {/* Filtros rápidos */}
+            <div className="w-full flex flex-wrap gap-3 items-center bg-white/80 rounded-xl shadow p-4 md:p-6">
+                <Input
+                  placeholder="Buscar por paciente"
+                  className="pl-10 h-11 rounded-lg border border-zinc-200 bg-white/90 shadow-sm focus:ring-2 focus:ring-ninacare-primary placeholder:text-zinc-400 text-base transition-all w-full max-w-xs"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
                 />
+                <select
+                  className="rounded-lg border border-zinc-200 bg-white/90 shadow-sm h-11 px-3 text-base text-zinc-700 focus:ring-2 focus:ring-ninacare-primary"
+                  value={profissional}
+                  onChange={e => setProfissional(e.target.value)}
+                >
+                  <option value="all">Todos os profissionais</option>
+                  {medicos.map(p => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-lg border border-zinc-200 bg-white/90 shadow-sm h-11 px-3 text-base text-zinc-700 focus:ring-2 focus:ring-ninacare-primary"
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                >
+                  <option value="all">Todos os status</option>
+                  {statusList.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-            <div className="md:col-span-2">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Procedimentos Agendados</h2>
-                <Button onClick={handleOpenNewAppointmentDialog} className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Novo Procedimento
-                </Button>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4 min-h-[300px]">
-                {loading ? (
-                  <p>Carregando...</p>
-                ) : compromissosFiltrados.length === 0 ? (
-                  <div className="text-center text-zinc-400 py-12">Nenhum compromisso encontrado</div>
-                ) : (
-                  compromissosFiltrados.map(c => (
-                    <Card key={c.id} className="bg-white/95 border-l-4 border-ninacare-primary/50 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="flex-1 flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-ninacare-primary/10 flex items-center justify-center">
-                            <User className="w-5 h-5 text-ninacare-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-zinc-800 text-base">{c.patient}</p>
-                            <p className="text-sm text-zinc-500">{c.observacoes}</p>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="text-xs font-medium capitalize h-6">
-                          {c.status}
-                        </Badge>
-                        <div className="flex flex-col items-end min-w-[80px]">
-                          <span className="text-xs text-zinc-400 font-mono mb-2">{new Date(c.data_procedimento).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          <Button size="sm" variant="outline" className="text-ninacare-primary border-ninacare-primary" onClick={() => handleEditProcedure(c)}>
-                            <Edit className="w-4 h-4 mr-1" /> Editar
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                {/* Calendário */}
+                <div className="md:col-span-1">
+                  <div className="md:w-full bg-white/80 rounded-2xl shadow p-4 md:p-6 flex flex-col items-center">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      className="w-full"
+                      locale={ptBR}
+                      modifiers={{ compromisso: diasComCompromissos }}
+                      modifiersClassNames={{ 
+                        compromisso: 'text-ninacare-primary font-bold border-2 border-ninacare-primary/60 bg-ninacare-primary/5 hover:border-ninacare-primary hover:bg-ninacare-primary/10 transition-all' 
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Procedimentos Agendados</h2>
+                    <Button onClick={handleOpenNewAppointmentDialog} className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Novo Procedimento
+                    </Button>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-4 min-h-[300px]">
+                    {loading ? (
+                      <p>Carregando...</p>
+                    ) : compromissosFiltrados.length === 0 ? (
+                      <div className="text-center text-zinc-400 py-12">Nenhum compromisso encontrado</div>
+                    ) : (
+                      compromissosFiltrados.map(c => (
+                        <Card key={c.id} className="bg-white/95 border-l-4 border-ninacare-primary/50 shadow-sm hover:shadow-md transition-shadow">
+                          <CardContent className="p-4 flex items-center gap-4">
+                            <div className="flex-1 flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-ninacare-primary/10 flex items-center justify-center">
+                                <User className="w-5 h-5 text-ninacare-primary" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-bold text-zinc-800 text-base">{c.patient}</p>
+                                <p className="text-sm text-zinc-500">{c.observacoes}</p>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="text-xs font-medium capitalize h-6">
+                              {c.status}
+                            </Badge>
+                            <div className="flex flex-col items-end min-w-[80px]">
+                              <span className="text-xs text-zinc-400 font-mono mb-2">{new Date(c.data_procedimento).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <Button size="sm" variant="outline" className="text-ninacare-primary border-ninacare-primary" onClick={() => handleEditProcedure(c)}>
+                                <Edit className="w-4 h-4 mr-1" /> Editar
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </main>
-      </div>
-      
-      {isConsultaDialogOpen && (
-        <ConsultationDialog
-          isOpen={isConsultaDialogOpen}
-          onOpenChange={handleCloseDialog}
-          onSubmit={handleConsultaSubmit}
-          editingProcedure={editingProcedure || (newlyCreatedPatient ? { paciente_id: newlyCreatedPatient.id, patient: newlyCreatedPatient } : null)}
-          onOpenPatientDialog={() => {
-            setIsConsultaDialogOpen(false);
-            setIsPacienteDialogOpen(true);
-          }}
+        </div>
+        
+        {/* Dialogs */}
+        {isConsultaDialogOpen && (
+          <ConsultationDialog
+            isOpen={isConsultaDialogOpen}
+            onOpenChange={handleCloseDialog}
+            onSubmit={handleConsultaSubmit}
+            editingProcedure={editingProcedure || (newlyCreatedPatient ? { paciente_id: newlyCreatedPatient.id, patient: newlyCreatedPatient } : null)}
+            onOpenPatientDialog={() => {
+              setIsConsultaDialogOpen(false);
+              setIsPacienteDialogOpen(true);
+            }}
+          />
+        )}
+        
+        {isEditDialogOpen && editingProcedure && (
+          <EditProcedureDialog
+            key={editingProcedure.id}
+            isOpen={isEditDialogOpen}
+            onOpenChange={handleEditDialogClose}
+            procedure={editingProcedure}
+            onSubmit={handleConsultaSubmit}
+            onDelete={() => handleDeleteProcedure(editingProcedure.id)}
+          />
+        )}
+        
+        <PatientDialog
+          isOpen={isPacienteDialogOpen}
+          onClose={() => setIsPacienteDialogOpen(false)}
+          onPatientCreated={handlePatientCreated}
         />
-      )}
-      
-      {isEditDialogOpen && editingProcedure && (
-        <EditProcedureDialog
-          key={editingProcedure.id}
-          isOpen={isEditDialogOpen}
-          onOpenChange={handleEditDialogClose}
-          procedure={editingProcedure}
-          onSubmit={handleConsultaSubmit}
-          onDelete={() => handleDeleteProcedure(editingProcedure.id)}
-        />
-      )}
-      
-      <PatientDialog
-        isOpen={isPacienteDialogOpen}
-        onClose={() => setIsPacienteDialogOpen(false)}
-        onPatientCreated={handlePatientCreated}
-      />
-    </div>
+    </>
   );
 };
 

@@ -228,8 +228,8 @@ export const useUserForm = (
     setLoading(true);
     try {
       if (editingUser) {
-        // ATUALIZAR USUÁRIO
-        const { error } = await supabase
+        // ATUALIZAR USUÁRIO - Atualizar tanto profiles quanto user_organizations
+        const { error: profileError } = await supabase
           .from('profiles')
           .update({
             nome: finalFormData.nome,
@@ -242,7 +242,18 @@ export const useUserForm = (
           })
           .eq('id', editingUser.id);
 
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Também atualizar user_organizations para manter consistência
+        const { error: userOrgError } = await supabase
+          .from('user_organizations')
+          .update({
+            role: finalFormData.role as any,
+            organizacao_id: finalFormData.organizacao_id
+          })
+          .eq('user_id', editingUser.id);
+
+        if (userOrgError) throw userOrgError;
         
         toast({
           title: "Usuário atualizado",

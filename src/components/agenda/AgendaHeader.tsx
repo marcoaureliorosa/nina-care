@@ -4,7 +4,7 @@ import { CalendarCheck } from "lucide-react";
 
 const AgendaHeader = () => {
   return (
-    <div className="ninacare-gradient rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-end justify-between shadow-lg mb-6">
+    <div className="ninacare-gradient rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-end justify-between shadow-lg">
       <div className="flex items-center gap-4 w-full md:w-auto">
         <Avatar className="h-16 w-16 shadow-md border-4 border-white bg-white">
           <CalendarCheck className="w-8 h-8 text-ninacare-primary" />
